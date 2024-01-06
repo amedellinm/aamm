@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+
+[project]
+name = "aamm"
+version = "0.2.0"
+
+[tool.setuptools]
+packages = ["aamm"]
+
+

@@ -1,0 +1,9 @@
+# Ignore
+__logs
+__pycache__
+.git
+.vscode
+extensions
+schedule
+scripts
+
