@@ -2,7 +2,6 @@
 __logs
 __pycache__
 .git
-.vscode
 extensions
 schedule
 scripts
