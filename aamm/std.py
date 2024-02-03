@@ -36,6 +36,19 @@ def are_sequences_equal(*sequences: Iterable[Sequence]) -> bool:
     return all(map(all_equal, zip(sequences)))
 
 
+def breadth_first(root, expand: Callable) -> Generator:
+    """Explores a tree from a root node using the breadth-first strategy."""
+    queue = deque([root])
+    while queue:
+        yield (node := queue.popleft())
+        queue.extend(expand(node))
+
+
+def byte_length(integer: int) -> int:
+    """Computes the minimum number of bytes needed to hold an unsigned integer."""
+    return ceil(integer.bit_length() / 8) or 1
+
+
 def cap_iter(it: Iterable, n: int = None) -> Generator:
     """Caps an iterator to `n` iterations."""
     if n is None:
@@ -55,19 +68,6 @@ def capture_stdout(file_path: str | Path, mode: str = "a") -> ContextManager[Tex
             yield file
         finally:
             sys.stdout = stdout
-
-
-def breadth_first(root, expand: Callable) -> Generator:
-    """Explores a tree from a root node using the breadth-first strategy."""
-    queue = deque([root])
-    while queue:
-        yield (node := queue.popleft())
-        queue.extend(expand(node))
-
-
-def byte_length(integer: int) -> int:
-    """Computes the minimum number of bytes needed to hold an unsigned integer."""
-    return ceil(integer.bit_length() / 8) or 1
 
 
 def deprecation(msg: str) -> Callable:
@@ -95,6 +95,11 @@ def depth_first(root, expand: Callable) -> Generator:
     while queue:
         yield (node := queue.pop())
         queue.extend(reversed(expand(node)))
+
+
+def divisible(numerator: int, denominator: int) -> bool:
+    """Returns whether numerator is divisible by denominator.."""
+    return not (numerator % denominator)
 
 
 def digits(integer: int) -> int:
@@ -140,6 +145,11 @@ def mod_complement(numerator: int, denominator: int) -> int:
     """Difference between `numerator` and the next multiple of `denominator`"""
     mod = numerator % denominator
     return denominator - mod if mod else 0
+
+
+def qualname(obj: Any) -> str:
+    """Returns the qualname of an object's type"""
+    return type(obj).__qualname__
 
 
 def reversed_enumerate(it: Iterable, start: int = ...) -> Generator:
