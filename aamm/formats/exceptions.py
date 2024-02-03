@@ -1,11 +1,6 @@
 from typing import Any, Sequence
 
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
-
-def qualname(obj: Any) -> str:
-    return type(obj).__qualname__
-
+from aamm.std import qualname
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
@@ -17,7 +12,7 @@ def attribute_error(obj: Any, attribute: str) -> str:
 def index_error(sequence: Sequence, index: int) -> str:
     length = len(sequence)
     type_name = qualname(sequence)
-    return f"Index {index} out of range for {type_name} of length {length}"
+    return f"index {index} out of range for {type_name} of length {length}"
 
 
 def key_error(key: Any) -> str:
