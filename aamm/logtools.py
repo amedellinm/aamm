@@ -3,7 +3,7 @@ import sys
 from contextlib import contextmanager
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, ContextManager
+from typing import Any, Callable, Literal
 from weakref import finalize
 
 import aamm.formats as fmt
@@ -12,26 +12,39 @@ from aamm.file_system import current_filename, current_folderpath
 
 class Logger:
     END = "\n"
-    SEP = " "
     FOLDER_NAME = "__logs"
+    LEVEL = 0
+    SEP = " "
 
     registry = {}
 
-    def __call__(self, *messages: tuple[str], end: str = None, sep: str = None) -> None:
-        Logger.registry[self.path] = True
-        self._log(*messages, sep=sep, end=end)
+    def __call__(
+        self,
+        *values: tuple[str],
+        end: str = None,
+        sep: str = None,
+        use_repr: bool = False,
+    ) -> Literal[True]:
+        """`print`-like interface for logging."""
+        if self.enabled and self.level >= self.LEVEL:
+            self.registry[self.path] = True
+            self._log(*values, sep=sep, end=end, use_repr=use_repr)
+        return True
 
     def __init__(
         self,
         file: str = None,
         root: str = None,
         *,
-        clear_file: bool = True,
-        do_logging: bool = True,
+        clear_file: bool = False,
+        enabled: bool = True,
+        level: int = 0,
+        separate_on_init: bool = True,
         use_stdout: bool = False,
     ) -> None:
         self.callbacks = []
-        self.do_logging = do_logging
+        self.enabled = enabled
+        self.level = level
 
         if use_stdout:
             self.path = None
@@ -41,15 +54,16 @@ class Logger:
                 root or os.path.join(current_folderpath(), self.FOLDER_NAME),
                 file or current_filename("log"),
             )
-
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
-
             self.target = open(self.path, "a")
-            if clear_file:
-                self.clear_file()
 
-        Logger.registry.setdefault(self.path, True)
-        self.split()
+        self.registry.setdefault(self.path, True)
+
+        if clear_file:
+            self.clear_file()
+
+        if separate_on_init:
+            self.separate()
 
         finalize(self, self._final_dispatch)
 
@@ -57,48 +71,56 @@ class Logger:
         return fmt.reprlike(
             self,
             path=self.path and fmt.ellipse_path(self.path),
-            do_logging=self.do_logging,
+            enabled=self.enabled,
         )
 
     def _final_dispatch(self) -> None:
-        for callback, args, kwargs in self.callbacks:
-            callback(*args, **kwargs)
-        if self.target is not sys.stdout:
-            self.target.close()
+        try:
+            for callback, args, kwargs in self.callbacks:
+                callback(*args, **kwargs)
+        finally:
+            if self.target is not sys.stdout:
+                self.target.close()
 
-    def _log(self, *messages: tuple[str], sep: str = None, end: str = None) -> None:
-        if self.do_logging:
-            end = self.END if end is None else end
-            sep = self.SEP if sep is None else sep
-            self.target.write(sep.join(map(str, messages)) + end)
+    def _log(
+        self,
+        *values: tuple[str],
+        sep: str = None,
+        end: str = None,
+        use_repr: bool = False,
+    ) -> None:
+        end = self.END if end is None else end
+        sep = self.SEP if sep is None else sep
+        self.target.write(sep.join(map(repr if use_repr else str, values)) + end)
 
-    def clear_file(self) -> None:
+    def clear_file(self) -> Literal[True]:
         """Clears the log file the logger instance points to"""
         if self.target is not sys.stdout:
             self.target.truncate(0)
             self.target.seek(0)
+        return True
 
     @contextmanager
-    def clock(self, tag: Any = None, disp_decimals: int = None) -> ContextManager:
-        """Times code within a with context."""
-        t = -perf_counter()
+    def clock(self, tag: Any = None):
+        """Times code within a with block."""
+        time = -perf_counter()
         try:
             yield
         finally:
-            t += perf_counter()
-            self(self.clock_format(tag, disp_decimals, t))
+            time += perf_counter()
+            self(self.clock_format(tag, time))
 
     def clock_format(self, tag: Any, disp_decimals: int, t: float) -> str:
         return f"[CLOCK]: {tag} | {t:.{disp_decimals}f} s"
 
     @contextmanager
-    def isolate(self) -> ContextManager:
-        """Runs the split method before and after the context."""
-        self.split()
+    def isolate(self, multiplier_enter: int = 1, multiplier_exit: int = 1):
+        """Runs the `separate` method before and after the context."""
+        self.separate(multiplier_enter)
         try:
             yield
         finally:
-            self.split()
+            self.separate(multiplier_exit)
 
     def profile(self, func: Callable) -> Callable:
         """Logs the call count and spend time of the decorated function."""
@@ -114,11 +136,14 @@ class Logger:
             total_time += perf_counter()
             return ans
 
-        def show_results() -> None:
-            avg_time = total_time / call_count
-            self(self.profile_format(func.__name__, call_count, total_time, avg_time))
+        def callback() -> None:
+            self(
+                self.profile_format(
+                    func.__qualname__, call_count, total_time, total_time / call_count
+                )
+            )
 
-        self.callbacks.append((show_results, (), {}))
+        self.callbacks.append((callback, (), {}))
 
         return decorated
 
@@ -131,11 +156,12 @@ class Logger:
             fmt.kwargs(call_count=call_count, total_time=total_time, avg_time=avg_time),
         )
 
-    def split(self, gap: int = 1) -> None:
-        """Logs a new line only if the last log wasn't a `self.split()` log."""
-        if Logger.registry[self.path]:
-            Logger.registry[self.path] = False
-            self._log(gap * self.END, sep="", end="")
+    def separate(self, multiplier: int = 2) -> Literal[True]:
+        """Logs `multiplier * self.END`. Consecutive calls do nothing."""
+        if self.registry[self.path]:
+            self.registry[self.path] = False
+            self(multiplier * self.END, sep="", end="")
+        return True
 
     def tracker(self, func: Callable) -> Callable:
         """Logs every time the decorated function is called with input/output info."""
@@ -143,11 +169,12 @@ class Logger:
         @wraps(func)
         def decorated(*args, **kwargs):
             ans = func(*args, **kwargs)
-            call = fmt.call(func.__qualname__, *args, **kwargs)
-            self(self.tracker_format(f"{call} -> {ans!r}"))
+            self(self.tracker_format(func.__qualname__, args, kwargs, ans))
             return ans
 
         return decorated
 
-    def tracker_format(self, call_signature: str) -> str:
-        return f"[TRACKER]: {call_signature}"
+    def tracker_format(
+        self, name: str, args: tuple, kwargs: dict[str, Any], ans: Any
+    ) -> str:
+        return f"[TRACKER]: {fmt.call(name, *args, **kwargs)} -> {ans}"

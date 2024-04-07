@@ -1,5 +1,6 @@
 import os
-from typing import Iterable
+from itertools import chain
+from typing import Any, Iterable
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
@@ -16,6 +17,13 @@ def abbreviate_path(path: str) -> str:
 def bullets(elements: Iterable, indent_level: int = 0, bullets: str = " - ") -> str:
     indentation = indent_level * "\t"
     return indentation + ("\n" + indentation).join(bullets + str(e) for e in elements)
+
+
+def call(name: str, *args, **kwargs) -> str:
+    params = ", ".join(
+        chain(map(repr, args), (f"{k}={v!r}" for k, v in kwargs.items()))
+    )
+    return f"{name}({params})"
 
 
 def dictionary(
@@ -51,6 +59,11 @@ def kwargs(
     **kwargs,
 ) -> str:
     return vectors(kwargs.items(), indent_level, line_start, connector, line_end, end)
+
+
+def qualname(obj: Any) -> str:
+    """Returns the qualname of an object's type"""
+    return type(obj).__qualname__
 
 
 def reprlike(obj: object, **kwargs) -> str:

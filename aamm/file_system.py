@@ -21,8 +21,8 @@ def are_directories_equal(d1: str, d2: str) -> bool:
     return True
 
 
-def current_filename(ext: str = ...) -> str:
-    filename = os.path.basename(inspect.stack()[-1].filename)
+def current_filename(ext: str | None = ..., stack_index: int = 1) -> str:
+    filename = os.path.basename(inspect.stack()[stack_index].filename)
     if ext is ...:
         return filename
     name = os.path.splitext(filename)[0]
@@ -31,22 +31,22 @@ def current_filename(ext: str = ...) -> str:
     return name
 
 
-def current_filepath() -> str:
-    return inspect.stack()[-1].filename
+def current_filepath(stack_index: int = 1) -> str:
+    return inspect.stack()[stack_index].filename
 
 
-def current_foldername() -> str:
-    return os.path.basename(os.path.dirname(inspect.stack()[-1].filename))
+def current_foldername(stack_index: int = 1) -> str:
+    return os.path.basename(os.path.dirname(inspect.stack()[stack_index].filename))
 
 
-def current_folderpath() -> str:
-    return os.path.dirname(inspect.stack()[-1].filename)
+def current_folderpath(stack_index: int = 1) -> str:
+    return os.path.dirname(inspect.stack()[stack_index].filename)
 
 
 def dir_up(path: str | Path = None, n: int = 1) -> str:
     """Returns `n` directories up the given path."""
     if path is None:
-        path = current_folderpath()
+        path = current_folderpath(2)
     elif os.path.isfile(path):
         path = os.path.dirname(path)
     for _ in range(n):
@@ -56,13 +56,13 @@ def dir_up(path: str | Path = None, n: int = 1) -> str:
 
 def here(file_name: str = "") -> str:
     """Constructs the path of a file in the current directory."""
-    return os.path.join(current_folderpath(), file_name)
+    return os.path.join(current_folderpath(2), file_name)
 
 
 def listfiles(path: str | Path = None) -> list[str]:
     """List all files in `path`."""
     if path is None:
-        path = current_folderpath()
+        path = current_folderpath(2)
     try:
         root, _, files = next(os.walk(path))
     except StopIteration:
@@ -73,7 +73,7 @@ def listfiles(path: str | Path = None) -> list[str]:
 def listfolders(path: str | Path = None) -> list[str]:
     """List all folders in `path`."""
     if path is None:
-        path = current_folderpath()
+        path = current_folderpath(2)
     try:
         root, folders, _ = next(os.walk(path))
     except StopIteration:
@@ -88,7 +88,7 @@ def search(
 ) -> Generator:
     """From `root`, depth-first traverses folders according to `condition`."""
     if root is None:
-        root = current_folderpath()
+        root = current_folderpath(2)
     elif root is ...:
         root = os.getcwd()
 
@@ -100,7 +100,6 @@ def search(
 
     queue = [root]
     while queue:
-        node = queue.pop()
-        if condition(node) ^ use_complement:
+        if condition(node := queue.pop()) ^ use_complement:
             queue.extend(reversed(listfolders(node)))
             yield node

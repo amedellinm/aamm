@@ -1,5 +1,7 @@
 import importlib.util
 import os.path
+import secrets
+import string
 import sys
 from collections import deque
 from contextlib import contextmanager
@@ -7,16 +9,7 @@ from functools import wraps
 from math import ceil
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    ContextManager,
-    Generator,
-    Iterable,
-    Literal,
-    Sequence,
-    TextIO,
-)
+from typing import Any, Callable, Generator, Iterable, Literal, Sequence
 
 from aamm.formats.exceptions import attribute_error
 
@@ -59,7 +52,7 @@ def cap_iter(it: Iterable, n: int = None) -> Generator:
 
 
 @contextmanager
-def capture_stdout(file_path: str | Path, mode: str = "a") -> ContextManager[TextIO]:
+def capture_stdout(file_path: str | Path, mode: str = "a"):
     """Temporarily redirects the stdout traffic to `file_path`."""
     stdout = sys.stdout
     with open(file_path, mode) as file:
@@ -107,6 +100,24 @@ def digits(integer: int) -> int:
     return len(str(abs(integer)))
 
 
+def generate_password(
+    length: int = 32,
+    lowers: bool = True,
+    uppers: bool = True,
+    digits: bool = True,
+    others: bool = True,
+) -> str:
+
+    chars = (
+        uppers * string.ascii_uppercase
+        + lowers * string.ascii_lowercase
+        + digits * string.digits
+        + others * string.punctuation
+    )
+
+    return "".join(secrets.choice(chars) for _ in range(length))
+
+
 def import_file(path: str | Path) -> ModuleType:
     """Imports a Python module (.py) from a path"""
     module_name, _ = os.path.splitext(os.path.basename(path))
@@ -145,11 +156,6 @@ def mod_complement(numerator: int, denominator: int) -> int:
     """Difference between `numerator` and the next multiple of `denominator`"""
     mod = numerator % denominator
     return denominator - mod if mod else 0
-
-
-def qualname(obj: Any) -> str:
-    """Returns the qualname of an object's type"""
-    return type(obj).__qualname__
 
 
 def reversed_enumerate(it: Iterable, start: int = ...) -> Generator:

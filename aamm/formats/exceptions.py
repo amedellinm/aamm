@@ -1,6 +1,6 @@
 from typing import Any, Sequence
 
-from aamm.std import qualname
+from aamm.formats import qualname
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
