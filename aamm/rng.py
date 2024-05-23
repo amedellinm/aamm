@@ -24,7 +24,7 @@ class RNG(np.random.Generator):
     def __str__(self) -> str:
         return f"RNG({self.seed})"
 
-    def booleans(self, p: float = 0.5, size: None = ...) -> bool | np.ndarray[bool]:
+    def booleans(self, p: float = 0.5, size: int = None) -> bool | np.ndarray[bool]:
         """Returns the result of a Bernoulli trial as a `bool`."""
         return self.random(size) < p
 
