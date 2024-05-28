@@ -54,6 +54,12 @@ def dir_up(path: str | Path = None, n: int = 1) -> str:
     return path
 
 
+def has_extension(path: str, extension: str = None) -> bool:
+    """If given, `extension` must have a leading dot e.g. `".py"`."""
+    ext = os.path.splitext(path)[1]
+    return bool(ext) if extension is None else extension == ext
+
+
 def here(file_name: str = "") -> str:
     """Constructs the path of a file in the current directory."""
     return os.path.join(current_folderpath(2), file_name)
