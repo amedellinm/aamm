@@ -158,6 +158,11 @@ def mod_complement(numerator: int, denominator: int) -> int:
     return denominator - mod if mod else 0
 
 
+def qualname(obj: Any) -> str:
+    """Returns the qualname of an object's type"""
+    return type(obj).__qualname__
+
+
 def reversed_enumerate(it: Iterable, start: int = ...) -> Generator:
     """The `enumerate` function but yields `(item, n)` instead of `(n, item)`."""
     return ((item, n) for n, item in enumerate(it, start))
