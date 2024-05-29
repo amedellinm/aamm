@@ -29,8 +29,8 @@ def are_sequences_equal(*sequences: Iterable[Sequence]) -> bool:
     return all(map(all_equal, zip(sequences)))
 
 
-def breadth_first(root, expand: Callable) -> Generator:
-    """Explores a tree from a root node using the breadth-first strategy."""
+def breadth_first(root: Any, expand: Callable) -> Generator:
+    """Traverses a graph from a root node using depth-first.."""
     queue = deque([root])
     while queue:
         yield (node := queue.popleft())
@@ -82,8 +82,8 @@ def deprecation(msg: str) -> Callable:
     return decorator
 
 
-def depth_first(root, expand: Callable) -> Generator:
-    """Explores a tree from a root node using the depth-first strategy."""
+def depth_first(root: Any, expand: Callable) -> Generator:
+    """Traverses a graph from a root node using depth-first.."""
     queue = [root]
     while queue:
         yield (node := queue.pop())
