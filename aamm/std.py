@@ -11,7 +11,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Generator, Iterable, Literal, Sequence
 
-from aamm.formats.exceptions import attribute_error
+from aamm.exceptions import attribute_error
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
