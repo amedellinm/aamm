@@ -1,20 +1,8 @@
-from abc import ABC, abstractmethod
-
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
 def qualname(obj: object) -> str:
     return type(obj).__qualname__
-
-
-class CustomException(ABC):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(self.message(*args, **kwargs))
-
-    @staticmethod
-    @abstractmethod
-    def message(*args, **kwargs) -> str:
-        pass
 
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
@@ -41,12 +29,8 @@ def type_error(obtained: object, expected: type | tuple[type]) -> str:
     return f"expected {types}, got {qualname(obtained)!r}"
 
 
-class OperandError(CustomException, TypeError):
-    @staticmethod
-    def message(a: object, b: object, operator: str) -> str:
-        return "unsupported type(s) {!r} and {!r} for operator {!r}".format(
-            qualname(a), qualname(b), operator
-        )
+class OperandError(TypeError):
+    message_format = "unsupported type(s) {!r} and {!r} for operator {!r}".format
 
-
-raise OperandError(3, "3", "&")
+    def __init__(self, operator: str, a: object, b: object):
+        super().__init__(self.message_format(qualname(a), qualname(b), operator))

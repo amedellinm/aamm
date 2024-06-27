@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 from weakref import finalize
 
 import aamm.formats as fmt
-from aamm.file_system import current_filename, current_folderpath
+from aamm.file_system import current_file, current_folder
 
 
 class Logger:
@@ -40,8 +40,8 @@ class Logger:
             self.target = sys.stdout
         else:
             self.path = os.path.join(
-                root or os.path.join(current_folderpath(), self.FOLDER_NAME),
-                file or current_filename("log"),
+                root or os.path.join(current_folder(), self.FOLDER_NAME),
+                file or current_file("log"),
             )
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
             self.target = open(self.path, "a")
