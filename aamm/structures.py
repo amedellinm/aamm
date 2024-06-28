@@ -4,7 +4,7 @@ from typing import Iterable, Iterator
 
 import numpy as np
 
-from aamm.exceptions import index_error
+from aamm.formats.exception import index_error
 from aamm.std import cap_iter, iterbits, mod_complement
 
 
