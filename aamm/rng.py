@@ -29,11 +29,7 @@ class RNG(np.random.Generator):
         """Gets the rng state."""
         return deepcopy(self.bit_generator.state)
 
-    def set_state(self, state: dict) -> None:
-        """Sets the rng state."""
-        self.bit_generator.state = state
-
-    def indices(self, n: int, *range_args) -> np.ndarray[int]:
+    def indices(self, n: int, *range_args: tuple[int]) -> np.ndarray[int]:
         """Returns n `random elements from `range(*range_args)`."""
         return self.choice(range(*range_args), n, False)
 
@@ -50,6 +46,10 @@ class RNG(np.random.Generator):
         if max_hi is None:
             max_hi, lo = lo, 0
         return range(lo, self.integers(lo + (not allow_empty), max_hi + 1), step)
+
+    def set_state(self, state: dict) -> None:
+        """Sets the rng state."""
+        self.bit_generator.state = state
 
     def stair(self, steps: int, length: int) -> np.ndarray[int]:
         """Return a 1D stair array of ints. `steps` is an upper limit"""
