@@ -11,7 +11,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Generator, Iterable, Literal, Sequence
 
-from aamm.exceptions import attribute_error
+from aamm.formats.exception import attribute_error
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
@@ -156,6 +156,18 @@ def mod_complement(numerator: int, denominator: int) -> int:
     """Difference between `numerator` and the next multiple of `denominator`"""
     mod = numerator % denominator
     return denominator - mod if mod else 0
+
+
+def not_implemented_method(method: Callable) -> Callable:
+    @wraps(method)
+    def function(self, *args, **kwargs):
+        method_name = method.__name__
+        method_type = qualname(self)
+        raise NotImplementedError(
+            f"method '{method_name}' not implemented in class '{method_type}'"
+        )
+
+    return function
 
 
 def qualname(obj: Any) -> str:

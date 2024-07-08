@@ -41,7 +41,7 @@ class Logger:
         else:
             self.path = os.path.join(
                 root or os.path.join(current_folder(), self.FOLDER_NAME),
-                file or current_file("log"),
+                file or current_file("log", stack_index=2),
             )
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
             self.target = open(self.path, "a")

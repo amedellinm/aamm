@@ -69,6 +69,10 @@ def files(
     return [os.path.join(root, subpath) for subpath in subpaths]
 
 
+def file_name(path: str) -> str:
+    return os.path.splitext(os.path.basename(path))[0]
+
+
 def folders(
     path: str = None, names_only: bool = False, stack_index: int = 2
 ) -> list[str]:
