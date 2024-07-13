@@ -96,24 +96,6 @@ def digits(integer: int) -> int:
     return len(str(abs(integer)))
 
 
-def generate_password(
-    length: int = 32,
-    lowers: bool = True,
-    uppers: bool = True,
-    digits: bool = True,
-    others: bool = True,
-) -> str:
-
-    chars = (
-        uppers * string.ascii_uppercase
-        + lowers * string.ascii_lowercase
-        + digits * string.digits
-        + others * string.punctuation
-    )
-
-    return "".join(secrets.choice(chars) for _ in range(length))
-
-
 def import_file(path: str | Path) -> ModuleType:
     """Imports a Python module (.py) from a path"""
     module_name, _ = os.path.splitext(os.path.basename(path))
