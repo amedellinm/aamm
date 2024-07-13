@@ -7,6 +7,7 @@ from collections import deque
 from contextlib import contextmanager
 from functools import wraps
 from math import ceil
+from numbers import Number
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Generator, Iterable, Literal, Sequence
@@ -178,6 +179,14 @@ def qualname(obj: Any) -> str:
 def reversed_enumerate(it: Iterable, start: int = ...) -> Generator:
     """The `enumerate` function but yields `(item, n)` instead of `(n, item)`."""
     return ((item, n) for n, item in enumerate(it, start))
+
+
+def sign(number: Number) -> int:
+    return number and (1 if number > 0 else -1)
+
+
+def sign_string(number: Number, zero_case: str = "") -> str:
+    return zero_case if number == 0 else "+" if number > 0 else "-"
 
 
 def skip_iter(it: Iterable, n: int = 0) -> Iterable:
