@@ -43,7 +43,7 @@ def byte_length(integer: int) -> int:
     return ceil(integer.bit_length() / 8) or 1
 
 
-def cap_iter(it: Iterable, n: int = None) -> Generator:
+def cap_iter(it: Iterable, n: int | None = None) -> Generator:
     """Caps an iterator to `n` iterations."""
     if n is None:
         yield from it
@@ -64,7 +64,7 @@ def capture_stdout(file_path: str | Path, mode: str = "a"):
             sys.stdout = stdout
 
 
-def deprecation(msg: str) -> Callable:
+def deprecation(msg: Callable | str) -> Callable:
     """Prints a deprecation warning message before every call."""
 
     def decorator(function: Callable) -> Callable:
@@ -89,11 +89,6 @@ def depth_first(root: Any, expand: Callable) -> Generator:
     while queue:
         yield (node := queue.pop())
         queue.extend(reversed(expand(node)))
-
-
-def divisible(numerator: int, denominator: int) -> bool:
-    """Returns whether numerator is divisible by denominator.."""
-    return not (numerator % denominator)
 
 
 def digits(integer: int) -> int:
@@ -136,6 +131,11 @@ def index(sequence: Sequence, item: Any) -> int | None:
             return n
 
 
+def is_divisible(numerator: int, denominator: int) -> bool:
+    """Returns whether numerator is divisible by denominator.."""
+    return not (numerator % denominator)
+
+
 def iterbits(array: bytearray) -> Generator:
     """Yields all bits from a `bytearray` in order."""
     for byte in array:
@@ -143,7 +143,7 @@ def iterbits(array: bytearray) -> Generator:
             yield bool(byte & 2**n)
 
 
-def loop(it: Iterable, n: int = None) -> Generator:
+def loop(it: Iterable, n: int | None = None) -> Generator:
     """Iterates over `it` in a circular fashion `n` times or indefinitely."""
     if n is None:
         while True:
