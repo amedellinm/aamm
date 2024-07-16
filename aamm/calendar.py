@@ -6,7 +6,7 @@ from typing import Iterator, Self
 import aamm.strings.match as match
 from aamm.exceptions import DomainError, OperandError
 from aamm.formats.exception import type_error
-from aamm.std import sign
+from aamm.std import ReadOnlyProperty, sign
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(days=7)
@@ -27,11 +27,21 @@ def date_range(
 
 class YearMonth:
     is_yearmonth_string = match.create_matcher(r"^(-|\+)?\d{4}(0[1-9]|1[0-2])$")
+    value = ReadOnlyProperty()
 
     def __add__(self, other: int) -> Self:
         if isinstance(other, int):
             return type(self)(self.value + other)
         raise OperandError(self, other, "+")
+
+    def __eq__(self, other: Self) -> bool:
+        return self.value == other.value
+
+    def __ge__(self, other: Self) -> bool:
+        return self.value >= other.value
+
+    def __gt__(self, other: Self) -> bool:
+        return self.value > other.value
 
     def __getitem__(self, subscript: int | slice) -> Date | Iterator[Date]:
         max_index = len(self)
@@ -51,10 +61,11 @@ class YearMonth:
 
         raise TypeError(type_error(subscript, (int, slice)))
 
-    def __iadd__(self, other: int) -> None:
-        if not isinstance(other, int):
-            raise OperandError(self, other, "+")
-        self.value += other
+    def __hash__(self) -> int:
+        return self.value
+
+    def __iadd__(self, other: int) -> Self:
+        return self.__add__(other)
 
     def __init__(self, year: int, month: int | None = None) -> None:
         if month is None:
@@ -65,16 +76,23 @@ class YearMonth:
             return
         raise DomainError(month, 1, 12)
 
-    def __isub__(self, other: int) -> None:
-        if not isinstance(other, int):
-            raise OperandError(self, other, "-")
-        self.value -= other
+    def __isub__(self, other: int | Self) -> Self | int:
+        return self.__sub__(other)
 
     def __iter__(self) -> Iterator[Date]:
         return self[:]
 
+    def __le__(self, other: Self) -> bool:
+        return self.value <= other.value
+
     def __len__(self) -> int:
         return monthrange(self.year, self.month)[1]
+
+    def __lt__(self, other: Self) -> bool:
+        return self.value < other.value
+
+    def __ne__(self, other: Self) -> bool:
+        return self.value != other.value
 
     def __repr__(self) -> str:
         return f"{type(self).__qualname__}({self.year}, {self.month})"
