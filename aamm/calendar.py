@@ -130,7 +130,7 @@ class YearMonth:
     @classmethod
     def from_string(cls, string: str) -> Self:
         if not cls.is_yearmonth_string(string):
-            raise ValueError(f"unable to interpret '{string}'") from None
+            raise ValueError(f"unable to interpret '{string}'")
         return cls(int(string[:-2]), int(string[-2:]))
 
     def elapse(
