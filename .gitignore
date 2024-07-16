@@ -3,7 +3,5 @@ __logs
 __pycache__
 .git
 aamm.egg-info
-dist
 extensions
 schedule
-scripts
