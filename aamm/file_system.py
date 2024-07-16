@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 from typing import Callable, Generator
 
+import aamm.strings.match as match
 from aamm.std import breadth_first, depth_first
-from aamm.strings import match
 
 
 def are_directories_equal(d1: str, d2: str) -> bool:

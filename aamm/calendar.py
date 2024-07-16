@@ -3,10 +3,10 @@ from datetime import date as Date
 from datetime import timedelta as TimeDelta
 from typing import Iterator, Self
 
+import aamm.strings.match as match
 from aamm.exceptions import DomainError, OperandError
 from aamm.formats.exception import type_error
 from aamm.std import sign
-from aamm.strings import match
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(days=7)

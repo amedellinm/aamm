@@ -1,6 +1,3 @@
-import aamm.strings.match as match
-
-
 def is_utf8_valid(string: str) -> bool:
     try:
         string.encode("utf-8")
