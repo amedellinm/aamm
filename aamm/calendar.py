@@ -5,8 +5,9 @@ from typing import Iterator, Self
 
 import aamm.strings.match as match
 from aamm.exceptions import DomainError, OperandError
-from aamm.formats.exception import type_error
-from aamm.std import ReadOnlyProperty, sign
+from aamm.formats.exception import index_error, type_error
+from aamm.meta import ReadOnlyProperty
+from aamm.std import sign, sign_string
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(days=7)
@@ -48,9 +49,8 @@ class YearMonth:
 
         if isinstance(subscript, int):
             if not (-max_index <= subscript < max_index):
-                raise DomainError(subscript, -max_index, max_index, True, False)
-            if subscript < 0:
-                subscript += max_index
+                raise IndexError(index_error(self, subscript))
+            subscript += (subscript < 0) * max_index
             return Date(self.year, self.month, subscript + 1)
 
         elif isinstance(subscript, slice):
@@ -114,23 +114,12 @@ class YearMonth:
 
     @classmethod
     def from_integer(cls, integer: int) -> Self:
-        if not (-999901 <= integer <= 999912):
-            raise DomainError(integer, -999901, 999912)
-
-        s = sign(integer)
-        i = abs(integer)
-        year = i // 100
-        month = i - year * 100
-
-        try:
-            return cls(s * year, month)
-        except DomainError:
-            raise ValueError(f"unable to interpret {integer}") from None
+        return cls.from_string(sign_string(integer) + f"{abs(integer):>06}")
 
     @classmethod
     def from_string(cls, string: str) -> Self:
         if not cls.is_yearmonth_string(string):
-            raise ValueError(f"unable to interpret '{string}'")
+            raise ValueError(f"unable to interpret '{string}' as {cls.__qualname__}")
         return cls(int(string[:-2]), int(string[-2:]))
 
     def elapse(
