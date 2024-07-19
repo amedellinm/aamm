@@ -1,8 +1,7 @@
 import filecmp
 import inspect
 import os
-from pathlib import Path
-from typing import Callable, Generator
+from typing import Callable, Iterator
 
 import aamm.strings.match as match
 from aamm.std import breadth_first, depth_first
@@ -22,7 +21,9 @@ def are_directories_equal(d1: str, d2: str) -> bool:
 
 
 def current_file(
-    extension: str | None = ..., name_only: bool = False, stack_index: int = 1
+    extension: str | ellipsis | None = ...,
+    name_only: bool = False,
+    stack_index: int = 1,
 ) -> str:
     file = inspect.stack()[stack_index].filename
     if name_only:
@@ -43,7 +44,7 @@ def current_folder(name_only: bool = False, stack_index: int = 1) -> str:
     return os.path.basename(folder_path) if name_only else folder_path
 
 
-def dir_up(path: str | Path = None, n: int = 1, stack_index: int = 2) -> str:
+def dir_up(path: str | None = None, n: int = 1, stack_index: int = 2) -> str:
     """Returns `n` directories up the given path."""
     if path is None:
         path = current_folder(stack_index=stack_index)
@@ -55,7 +56,7 @@ def dir_up(path: str | Path = None, n: int = 1, stack_index: int = 2) -> str:
 
 
 def files(
-    path: str = None, names_only: bool = False, stack_index: int = 2
+    path: str | None = None, names_only: bool = False, stack_index: int = 2
 ) -> list[str]:
     """List all files in `path`."""
     if path is None:
@@ -74,7 +75,7 @@ def file_name(path: str) -> str:
 
 
 def folders(
-    path: str = None, names_only: bool = False, stack_index: int = 2
+    path: str | None = None, names_only: bool = False, stack_index: int = 2
 ) -> list[str]:
     """List all folders in `path`."""
     if path is None:
@@ -100,12 +101,12 @@ def here(file_name: str = "", stack_index: int = 2) -> str:
 
 
 def search(
-    root: str = None,
+    root: str | ellipsis | None = None,
     condition: str | Callable = ".",
     use_complement: bool = False,
     use_breadth_first: bool = False,
     stack_index: int = 2,
-) -> Generator:
+) -> Iterator[str]:
     """From `root`, depth-first traverses folders according to `condition`."""
     if root is None:
         root = current_folder(stack_index=stack_index)
@@ -118,6 +119,6 @@ def search(
     def expand(node):
         if condition(node) ^ use_complement:
             return folders(node)
-        return []
+        return ()
 
     return (breadth_first if use_breadth_first else depth_first)(root, expand)
