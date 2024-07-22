@@ -4,10 +4,10 @@ from datetime import timedelta as TimeDelta
 from typing import Iterator, Self
 
 import aamm.strings.match as match
-from aamm.exceptions import DomainError, OperandError
+from aamm.exceptions import OperandError, assert_domain_error
 from aamm.formats.exception import index_error, type_error
 from aamm.meta import ReadOnlyProperty
-from aamm.std import sign, sign_string
+from aamm.std import sign
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(days=7)
@@ -26,22 +26,22 @@ def date_range(
 
     PARAMETERS
     ----------
-    start:
+    `start: Date`
         * the starting date of the generated range.
         * the first end is closed, therefore `start` is always included in the range.
 
-    end:
+    `end: Date | int | None = None`
         * the limit of the range.
         * if `end` is `int`, use `start` shifted `end` days.
         * if `end` is `datetime.date`, use it directly.
         * if `end` is `None`, use the value passed as `start` and `start` defaults to
           `datetime.date.today()`.
 
-    step:
+    `step: int = 1`
         * number of days advanced each iteration.
         * if `start > end`, then `step > 0` returns an empty generator.
 
-    include_last:
+    `include_last: bool = True`
         * This argument is only used if `end` is `datetime.date`.
         * if `True`, turns the range from [start, end) to [start, end].
 
@@ -55,7 +55,10 @@ def date_range(
 
 
 class YearMonth:
-    is_yearmonth_string = match.create_matcher(r"^(-|\+)?\d{4}(0[1-9]|1[0-2])$")
+    """Date-like object, holds a pair year-month."""
+
+    is_yearmonth_string = match.create_matcher(r"^\d{4}(0[1-9]|1[0-2])$")
+    max_value = 12 * 9999 + 11
     value = ReadOnlyProperty()
 
     def __add__(self, other: int) -> Self:
@@ -97,12 +100,13 @@ class YearMonth:
 
     def __init__(self, year: int, month: int | None = None) -> None:
         if month is None:
+            assert_domain_error("value", year, 0, self.max_value)
             self.value = year
             return
-        if 1 <= month <= 12:
-            self.value = 12 * year + month - 1
-            return
-        raise DomainError(month, 1, 12)
+
+        assert_domain_error("year", year, 0, 9999)
+        assert_domain_error("month", month, 1, 12)
+        self.value = 12 * year + month - 1
 
     def __isub__(self, other: int | Self) -> Self | int:
         return self.__sub__(other)
@@ -126,41 +130,86 @@ class YearMonth:
         return f"{type(self).__qualname__}({self.year}, {self.month})"
 
     def __str__(self) -> str:
-        return (sign(y := self.year) == -1) * "-" + f"{abs(y):>04}{self.month:>02}"
+        return f"{self.year:>04}-{self.month:>02}"
 
     def __sub__(self, other: int | Self) -> Self | int:
-        TypeSelf = type(self)
-        if isinstance(other, int):
-            return TypeSelf(self.value - other)
-        elif isinstance(other, TypeSelf):
+        if isinstance(other, TypeSelf := type(self)):
             return self.value - other.value
+        elif isinstance(other, int):
+            return TypeSelf(self.value - other)
         raise OperandError(self, other, "-")
 
     @classmethod
     def from_date(cls, date: Date) -> Self:
+        """Constructs from an object with year and month properties."""
         return cls(date.year, date.month)
 
     @classmethod
     def from_integer(cls, integer: int) -> Self:
-        return cls.from_string(sign_string(integer) + f"{abs(integer):>06}")
+        """Constructs from a valid `int` object."""
+        assert_domain_error("integer", integer, 1, 999912)
+        return cls.from_string(f"{integer:>06}")
 
     @classmethod
     def from_string(cls, string: str) -> Self:
+        """Constructs from a valid `str` object."""
         if not cls.is_yearmonth_string(string):
             raise ValueError(f"unable to interpret '{string}' as {cls.__qualname__}")
         return cls(int(string[:-2]), int(string[-2:]))
 
     def elapse(
-        self, shift: int, length: int | None = None, step: int = 1
+        self,
+        shift: int = 0,
+        end: int | Self | None = None,
+        step: int = 1,
+        include_last: bool = True,
     ) -> Iterator[Self]:
-        if length is None:
-            shift, length = 0, shift
-        for i in range(shift, length + shift, step):
-            yield self + i
+        """
+        DESCRIPTION
+        -----------
+        Generate a sequence of `YearMonth` objects relative to `self`.
+
+        PARAMETERS
+        ----------
+        `shift: int = 0`
+            * the sequence starts from `self` shifted `shift` months.
+            * the first end is closed, therefore the first element is always included
+              in the sequence.
+
+        `end: int | Self | None = None`
+            * the limit of the range.
+            * if `end` is `int`, use the beggining of the sequence shifted `end` months
+              as the end of the sequence.
+            * if `end` is `YearMonth`, use it directly.
+            * if `end` is `None`, use the value passed as `shift` and `shift` defaults
+              to `0`.
+
+        `step: int = 1`
+            * number of months advanced each iteration.
+
+        `include_last: bool = True`
+            * This argument is only used if `end` is `YearMonth`.
+            * if `True`, turns the range from [start, end) to [start, end].
+
+        """
+
+        if end is None:
+            shift, end = 0, shift
+
+        start = self + shift
+
+        if isinstance(end, type(self)):
+            end -= start
+            end += sign(end) * include_last
+
+        return (start + i for i in range(0, end, sign(end, 1) * step))
 
     @property
     def month(self) -> int:
         return self.value % 12 + 1
+
+    def raw(self) -> str:
+        return f"{self.year:>04}{self.month:>02}"
 
     @property
     def year(self) -> int:
