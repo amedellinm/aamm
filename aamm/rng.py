@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from aamm.std import ReadOnlyProperty
+from aamm.meta import ReadOnlyProperty
 
 
 class RNG(np.random.Generator):
