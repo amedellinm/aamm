@@ -9,9 +9,9 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 def decrypt(encrypted_data: bytes, password: str) -> bytes | None:
-    size = encrypted_data[0]
-    salt = encrypted_data[1 : size + 1]
-    data = encrypted_data[size + 1 :]
+    head = encrypted_data[0]
+    salt = encrypted_data[1 : head + 1]
+    data = encrypted_data[head + 1 :]
     keys = key_from_password(password, salt)
     try:
         return Fernet(keys).decrypt(data)
