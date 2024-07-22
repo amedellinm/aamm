@@ -19,6 +19,34 @@ def date_range(
     step: int = 1,
     include_last: bool = True,
 ) -> Iterator[Date]:
+    """
+    DESCRIPTION
+    -----------
+    Generate a range of dates from `start` to `end` advancing `step` dates at a time.
+
+    PARAMETERS
+    ----------
+    start:
+        * the starting date of the generated range.
+        * the first end is closed, therefore `start` is always included in the range.
+
+    end:
+        * the limit of the range.
+        * if `end` is `int`, use `start` shifted `end` days.
+        * if `end` is `datetime.date`, use it directly.
+        * if `end` is `None`, use the value passed as `start` and `start` defaults to
+          `datetime.date.today()`.
+
+    step:
+        * number of days advanced each iteration.
+        * if `start > end`, then `step > 0` returns an empty generator.
+
+    include_last:
+        * This argument is only used if `end` is `datetime.date`.
+        * if `True`, turns the range from [start, end) to [start, end].
+
+    """
+
     if end is None:
         start, end = Date.today(), start
     if isinstance(end, Date):
