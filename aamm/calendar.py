@@ -26,22 +26,22 @@ def date_range(
 
     PARAMETERS
     ----------
-    `start: Date`
+    ### start: Date
         * the starting date of the generated range.
         * the first end is closed, therefore `start` is always included in the range.
 
-    `end: Date | int | None = None`
+    ### end: Date | int | None = None
         * the limit of the range.
         * if `end` is `int`, use `start` shifted `end` days.
         * if `end` is `datetime.date`, use it directly.
         * if `end` is `None`, use the value passed as `start` and `start` defaults to
           `datetime.date.today()`.
 
-    `step: int = 1`
+    ### step: int = 1
         * number of days advanced each iteration.
-        * if `start > end`, then `step > 0` returns an empty generator.
+        * the sign of `step` is inferred, use positive integers only.
 
-    `include_last: bool = True`
+    ### include_last: bool = True
         * This argument is only used if `end` is `datetime.date`.
         * if `True`, turns the range from [start, end) to [start, end].
 
@@ -51,7 +51,7 @@ def date_range(
         start, end = Date.today(), start
     if isinstance(end, Date):
         end = (end - start).days + include_last
-    return (start + DAY * i for i in range(0, end, step))
+    return (start + DAY * i for i in range(0, end, sign(end) * step))
 
 
 class YearMonth:
@@ -141,20 +141,20 @@ class YearMonth:
 
     @classmethod
     def from_date(cls, date: Date | None = None) -> Self:
-        """Constructs from an object with year and month properties."""
+        """Construct from an object with year and month properties."""
         if date is None:
             date = Date.today()
         return cls(date.year, date.month)
 
     @classmethod
     def from_integer(cls, integer: int) -> Self:
-        """Constructs from a valid `int` object."""
+        """Construct from a valid `int` object."""
         assert_domain_error("integer", integer, 1, 999912)
         return cls.from_string(f"{integer:>06}")
 
     @classmethod
     def from_string(cls, string: str) -> Self:
-        """Constructs from a valid `str` object."""
+        """Construct from a valid `str` object."""
         if not cls.is_yearmonth_string(string):
             raise ValueError(f"unable to interpret '{string}' as {cls.__qualname__}")
         return cls(int(string[:-2]), int(string[-2:]))
@@ -173,23 +173,24 @@ class YearMonth:
 
         PARAMETERS
         ----------
-        `shift: int = 0`
+        ### shift: int = 0
             * the sequence starts from `self` shifted `shift` months.
             * the first end is closed, therefore the first element is always included
               in the sequence.
 
-        `end: int | Self | None = None`
-            * the limit of the range.
+        ### end: int | Self | None = None
+            * the limit of the sequence.
             * if `end` is `int`, use the beggining of the sequence shifted `end` months
               as the end of the sequence.
             * if `end` is `YearMonth`, use it directly.
             * if `end` is `None`, use the value passed as `shift` and `shift` defaults
               to `0`.
 
-        `step: int = 1`
+        ### step: int = 1
             * number of months advanced each iteration.
+            * the sign of `step` is inferred, use positive integers only.
 
-        `include_last: bool = True`
+        ### include_last: bool = True
             * This argument is only used if `end` is `YearMonth`.
             * if `True`, turns the range from [start, end) to [start, end].
 
@@ -211,6 +212,7 @@ class YearMonth:
         return self.value % 12 + 1
 
     def raw_string(self) -> str:
+        """Return a raw representation of `self` as a `string`."""
         return f"{self.year:>04}{self.month:>02}"
 
     @property
