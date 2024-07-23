@@ -218,5 +218,5 @@ class YearMonth:
         return self.value // 12
 
     @property
-    def yearmonth(self) -> tuple[int]:
+    def yearmonth(self) -> tuple[int, int]:
         return (self.year, self.month)
