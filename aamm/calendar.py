@@ -140,8 +140,10 @@ class YearMonth:
         raise OperandError(self, other, "-")
 
     @classmethod
-    def from_date(cls, date: Date) -> Self:
+    def from_date(cls, date: Date | None = None) -> Self:
         """Constructs from an object with year and month properties."""
+        if date is None:
+            date = Date.today()
         return cls(date.year, date.month)
 
     @classmethod
