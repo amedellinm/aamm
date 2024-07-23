@@ -210,7 +210,7 @@ class YearMonth:
     def month(self) -> int:
         return self.value % 12 + 1
 
-    def raw(self) -> str:
+    def raw_string(self) -> str:
         return f"{self.year:>04}{self.month:>02}"
 
     @property
