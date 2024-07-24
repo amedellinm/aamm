@@ -4,7 +4,7 @@ import sys
 from collections import deque
 from math import ceil
 from numbers import Number
-from operator import ge, gt, le, lt
+from operator import le, lt
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Generator, Iterable, Iterator, Sequence
@@ -33,7 +33,7 @@ def between(
 ) -> bool:
     """Check `value` is between `left` and `right`."""
     l = le if include_left else lt
-    r = ge if include_right else gt
+    r = le if include_right else lt
     return l(left, value) and r(value, right)
 
 
