@@ -2,12 +2,12 @@ import importlib.util
 import os.path
 import sys
 from collections import deque
-from contextlib import contextmanager
 from math import ceil
 from numbers import Number
+from operator import ge, gt, le, lt
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, Generator, Iterable, Iterator, Literal, Sequence
+from typing import Any, Callable, Generator, Iterable, Iterator, Sequence
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
@@ -26,6 +26,15 @@ def are_sequences_equal(*sequences: tuple[Sequence]) -> bool:
     if not all_equal(map(len, sequences)):
         return False
     return all(map(all_equal, zip(sequences)))
+
+
+def between(
+    value, left, right, include_left: bool = True, include_right: bool = True
+) -> bool:
+    """Check `value` is between `left` and `right`."""
+    l = le if include_left else lt
+    r = ge if include_right else gt
+    return l(left, value) and r(value, right)
 
 
 def breadth_first(root: Any, expand: Callable) -> Generator:
