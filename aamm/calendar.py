@@ -4,7 +4,7 @@ from datetime import timedelta as TimeDelta
 from typing import Iterator, Self
 
 import aamm.strings.match as match
-from aamm.exceptions import OperandError, assert_domain_error
+from aamm.exceptions import OperandError, assert_domain
 from aamm.formats.exception import index_error, type_error
 from aamm.meta import ReadOnlyProperty
 from aamm.std import sign
@@ -100,12 +100,12 @@ class YearMonth:
 
     def __init__(self, year: int, month: int | None = None) -> None:
         if month is None:
-            assert_domain_error("value", year, 0, self.max_value)
+            assert_domain("value", year, 0, self.max_value)
             self.value = year
             return
 
-        assert_domain_error("year", year, 0, 9999)
-        assert_domain_error("month", month, 1, 12)
+        assert_domain("year", year, 0, 9999)
+        assert_domain("month", month, 1, 12)
         self.value = 12 * year + month - 1
 
     def __isub__(self, other: int | Self) -> Self | int:
@@ -149,7 +149,7 @@ class YearMonth:
     @classmethod
     def from_integer(cls, integer: int) -> Self:
         """Construct from a valid `int` object."""
-        assert_domain_error("integer", integer, 1, 999912)
+        assert_domain("integer", integer, 1, 999912)
         return cls.from_string(f"{integer:>06}")
 
     @classmethod

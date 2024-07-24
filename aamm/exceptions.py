@@ -1,46 +1,43 @@
-from numbers import Number
+from aamm.std import between
 
-
-def assert_domain_error(
-    name: str,
-    value: Number,
-    left: Number,
-    right: Number,
-    closed_left: bool = True,
-    closed_right: bool = True,
-):
-    match closed_left, closed_right:
-        case False, False if left < value < right:
-            return
-        case False, True if left < value <= right:
-            return
-        case True, False if left <= value < right:
-            return
-        case True, True if left <= value <= right:
-            return
-        case _:
-            raise DomainError(name, value, left, right, closed_left, closed_right)
+# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
 def qualname(obj: object) -> str:
     return type(obj).__qualname__
 
 
-class DomainError(ValueError):
-    _ends = "([)]"
+# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
+
+def assert_domain(
+    label: str,
+    value,
+    left,
+    right,
+    include_left: bool = True,
+    include_right: bool = True,
+):
+    if not between(value, left, right, include_left, include_right):
+        raise DomainError(label, value, left, right, include_left, include_right)
+
+
+# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+
+
+class DomainError(ValueError):
     def __init__(
         self,
-        name: str,
-        value: Number,
-        left: Number,
-        right: Number,
-        closed_left: bool = True,
-        closed_right: bool = True,
+        label,
+        value,
+        left,
+        right,
+        include_left: bool = True,
+        include_right: bool = True,
     ) -> None:
-        l = self._ends[closed_left]
-        r = self._ends[closed_right + 2]
-        super().__init__(f"'{name}' {value} outside of {l}{left}, {right}{r}")
+        l = "<="[: 1 + include_left]
+        r = "<="[: 1 + include_right]
+        super().__init__(f"expected {left} {l} {label} {r} {right}, got {value}")
 
 
 class OperandError(TypeError):
