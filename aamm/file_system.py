@@ -1,6 +1,7 @@
 import filecmp
 import inspect
 import os
+from types import EllipsisType
 from typing import Callable, Iterator
 
 import aamm.strings.match as match
@@ -21,7 +22,7 @@ def are_directories_equal(d1: str, d2: str) -> bool:
 
 
 def current_file(
-    extension: str | ellipsis | None = ...,
+    extension: str | EllipsisType | None = ...,
     name_only: bool = False,
     stack_index: int = 1,
 ) -> str:
@@ -101,8 +102,8 @@ def here(file_name: str = "", stack_index: int = 2) -> str:
 
 
 def search(
-    root: str | ellipsis | None = None,
-    condition: str | Callable = ".",
+    root: str | EllipsisType | None = None,
+    condition: str | Callable | None = None,
     use_complement: bool = False,
     use_breadth_first: bool = False,
     stack_index: int = 2,
@@ -113,7 +114,9 @@ def search(
     elif root is ...:
         root = os.getcwd()
 
-    if isinstance(condition, str):
+    if condition is None:
+        expand = folders
+    elif isinstance(condition, str):
         condition = match.create_matcher(condition)
 
     def expand(node):
