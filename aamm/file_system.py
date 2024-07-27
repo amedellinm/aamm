@@ -114,6 +114,8 @@ def search(
     elif root is ...:
         root = os.getcwd()
 
+    explore = breadth_first if use_breadth_first else depth_first
+
     if condition is None:
         return explore(root, expand=folders)
 
