@@ -72,7 +72,7 @@ def files(
 
 
 def file_name(path: str) -> str:
-    return os.path.splitext(os.path.basename(path))[0]
+    return os.path.splitext(os.path.basename(path))
 
 
 def folders(
