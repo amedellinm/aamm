@@ -115,8 +115,9 @@ def search(
         root = os.getcwd()
 
     if condition is None:
-        expand = folders
-    elif isinstance(condition, str):
+        return explore(root, expand=folders)
+
+    if isinstance(condition, str):
         condition = match.create_matcher(condition)
 
     def expand(node):
@@ -124,4 +125,4 @@ def search(
             return folders(node)
         return ()
 
-    return (breadth_first if use_breadth_first else depth_first)(root, expand)
+    return explore(root, expand)
