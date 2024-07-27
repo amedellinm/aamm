@@ -7,7 +7,7 @@ import aamm.strings.match as match
 from aamm.exceptions import OperandError, assert_domain
 from aamm.formats.exception import index_error, type_error
 from aamm.meta import ReadOnlyProperty
-from aamm.std import sign
+from aamm.std import qualname, raise_many, sign
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(days=7)
@@ -100,12 +100,15 @@ class YearMonth:
 
     def __init__(self, year: int, month: int | None = None) -> None:
         if month is None:
-            assert_domain("value", year, 0, self.max_value)
+            assert_domain("value", year, 0, self.max_value, throw=True)
             self.value = year
             return
 
-        assert_domain("year", year, 0, 9999)
-        assert_domain("month", month, 1, 12)
+        raise_many(
+            assert_domain("year", year, 0, 9999),
+            assert_domain("month", month, 1, 12),
+            message=f"{qualname(self)} constructor",
+        )
         self.value = 12 * year + month - 1
 
     def __isub__(self, other: int | Self) -> Self | int:
@@ -127,7 +130,7 @@ class YearMonth:
         return self.value != other.value
 
     def __repr__(self) -> str:
-        return f"{type(self).__qualname__}({self.year}, {self.month})"
+        return f"{qualname(self)}({self.year}, {self.month})"
 
     def __str__(self) -> str:
         return f"{self.year:>04}-{self.month:>02}"

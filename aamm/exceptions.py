@@ -17,9 +17,14 @@ def assert_domain(
     right,
     include_left: bool = True,
     include_right: bool = True,
+    *,
+    throw: bool = False,
 ):
     if not between(value, left, right, include_left, include_right):
-        raise DomainError(label, value, left, right, include_left, include_right)
+        e = DomainError(label, value, left, right, include_left, include_right)
+        if throw:
+            raise e
+        return e
 
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /

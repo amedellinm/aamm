@@ -124,6 +124,17 @@ def qualname(obj: Any) -> str:
     return type(obj).__qualname__
 
 
+def raise_many(*exceptions: tuple[Exception | None], message: str = "") -> None:
+    exceptions = tuple(e for e in exceptions if e is not None)
+    match len(exceptions):
+        case 0:
+            return
+        case 1:
+            raise exceptions[0]
+        case _:
+            raise ExceptionGroup(message, exceptions)
+
+
 def sign(number: Number, zero_case: str = 0) -> int:
     return zero_case if number == 0 else 1 if number > 0 else -1
 
