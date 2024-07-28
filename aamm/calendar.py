@@ -152,7 +152,7 @@ class YearMonth:
     @classmethod
     def from_integer(cls, integer: int) -> Self:
         """Construct from a valid `int` object."""
-        assert_domain("integer", integer, 1, 999912)
+        assert_domain("integer", integer, 1, 999912, throw=True)
         return cls.from_string(f"{integer:>06}")
 
     @classmethod
