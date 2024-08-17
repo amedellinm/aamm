@@ -175,12 +175,8 @@ def raise_many(*exceptions: tuple[Exception | None], message: str = "") -> None:
             raise ExceptionGroup(message, exceptions)
 
 
-def sign(number: Number, zero_case: str = 0) -> int:
-    return zero_case if number == 0 else 1 if number > 0 else -1
-
-
-def sign_string(number: Number, zero_case: str = "") -> str:
-    return zero_case if number == 0 else "+" if number > 0 else "-"
+def sign(number: Number, negative: Any = -1, zero: Any = 0, positive: Any = 1) -> Any:
+    return zero if number == 0 else positive if number > 0 else negative
 
 
 def skip_iter(iterable: Iterable, n: int = 1) -> Iterator:
