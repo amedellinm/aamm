@@ -159,6 +159,28 @@ def mod_complement(numerator: int, denominator: int) -> int:
     return denominator - mod if mod else 0
 
 
+def partial_sort(
+    sequence: Iterable,
+    preset: list,
+    key: Callable = None,
+    reverse: bool = False,
+    insert_index: int = 0,
+    strict: bool = True,
+) -> list:
+    sorted_sequence = sorted(sequence, key=key, reverse=reverse)
+    matching_preset = [i for i in preset if i in sorted_sequence]
+    sorted_sequence = [i for i in sorted_sequence if not i in preset]
+
+    if matching_preset != preset and strict:
+        raise ValueError("Missing element(s) of `preset` inside `sequence`.")
+
+    return (
+        sorted_sequence[:insert_index]
+        + matching_preset
+        + sorted_sequence[insert_index:]
+    )
+
+
 def qualname(obj: Any) -> str:
     """Returns the qualname of an object's type"""
     return type(obj).__qualname__
@@ -185,3 +207,16 @@ def skip_iter(iterable: Iterable, n: int = 1) -> Iterator:
     for _ in range(n):
         next(iterable)
     return iterable
+
+
+def split_iter(iterable: Iterable, condition: Callable):
+    true_group = []
+    false_group = []
+
+    for i in iterable:
+        if condition(i):
+            true_group.append(i)
+        else:
+            false_group.append(i)
+
+    return true_group, false_group
