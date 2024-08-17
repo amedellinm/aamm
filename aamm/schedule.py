@@ -50,8 +50,24 @@ def date_range(
     if end is None:
         start, end = Date.today(), start
     if isinstance(end, Date):
-        end = (end - start).days + include_last
-    return (start + DAY * i for i in range(0, end, sign(end) * step))
+        end = (end - start).days
+        end += include_last * sign(end, zero=1)
+    return (start + DAY * i for i in range(0, end, sign(end, zero=1) * step))
+
+
+def find_weekday(
+    date: Date, weekday: int, index: int = 1, include_start: bool = False
+) -> Date:
+    if index == 0:
+        return date
+
+    shift = weekday - date.weekday()
+    index_sign = sign(index)
+    shift_sign = sign(shift)
+    index -= (shift_sign == 0 and include_start) * index_sign
+    shift += (shift_sign != index_sign) * 7 * index
+
+    return date + DAY * shift
 
 
 class YearMonth:
