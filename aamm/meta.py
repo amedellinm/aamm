@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from functools import wraps
 from typing import Callable, Literal
 
-from aamm.formats.exception import attribute_error
+from aamm.exceptions.formats import attribute_error
 from aamm.std import qualname
 
 
