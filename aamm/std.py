@@ -1,7 +1,7 @@
 import importlib.util
 import os.path
 import sys
-from collections import deque
+from collections import defaultdict, deque
 from math import ceil
 from numbers import Number
 from operator import le, lt
@@ -73,7 +73,47 @@ def digits(integer: int) -> int:
     return len(str(abs(integer)))
 
 
-def import_file(path: str | Path) -> ModuleType:
+def group_by(
+    data: Iterable[tuple],
+    keys: int | Sequence[int] = 0,
+    values: int | Sequence[int] | None = None,
+) -> dict:
+
+    def fetch_one(row: tuple, index: int):
+        return row[index]
+
+    def fetch_many(row: tuple, index: tuple[int]):
+        return tuple(row[i] for i in index)
+
+    grouped_data = defaultdict(list)
+    data = iter(data)
+
+    try:
+        row = next(data)
+    except StopIteration:
+        return {}
+
+    if values is None:
+        if isinstance(keys, int):
+            values = tuple(i for i in range(len(row)) if i != keys)
+            fetch_keys = fetch_one
+        else:
+            fetch_keys = fetch_many
+            values = tuple(i for i in range(len(row)) if i not in keys)
+    elif isinstance(values, int):
+        values = (values,)
+
+    fetch_values = fetch_one if len(values) == 1 else fetch_many
+
+    grouped_data[fetch_keys(row, keys)].append(fetch_many(row, values))
+
+    for row in data:
+        grouped_data[fetch_keys(row, keys)].append(fetch_values(row, values))
+
+    return grouped_data
+
+
+def import_path(path: str | Path) -> ModuleType:
     """Imports a Python module (.py) from a path"""
     module_name, _ = os.path.splitext(os.path.basename(path))
     spec = importlib.util.spec_from_file_location(module_name, path)
