@@ -7,7 +7,7 @@ from time import perf_counter
 from typing import Any, Callable, Literal
 from weakref import finalize
 
-import aamm.formats as fmt
+import aamm.logtools.formats as fmt
 from aamm.file_system import current_file, current_folder
 
 
@@ -278,7 +278,9 @@ class Timer(Logger):
         return fmt.logging.tag_header_body(
             "PROFILING",
             f"On function '{function_name}'",
-            fmt.kwargs(call_count=call_count, total_time=total_time, avg_time=avg_time),
+            fmt.kwargs(
+                call_count=call_count, total_time=total_time, avg_time=avg_time
+            ),
         )
 
     def tracker(self, func: Callable) -> Callable:
