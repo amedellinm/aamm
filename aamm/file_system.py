@@ -71,7 +71,7 @@ def files(
     return [os.path.join(root, subpath) for subpath in subpaths]
 
 
-def file_name(path: str) -> str:
+def file_name(path: str) -> tuple[str, str]:
     return os.path.splitext(os.path.basename(path))
 
 
