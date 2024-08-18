@@ -182,10 +182,12 @@ def main(
 
             for suite_name, test_info in group_by(failed_tests).items():
                 stream.write(2 * TAB + suite_name + "\n")
-                for test_name, _, *error_info in test_info:
-                    stream.write(
-                        indent(fmts.failed_test(test_name, *error_info), 3) + "\n\n"
+                stream.write(
+                    "\n".join(
+                        indent(fmts.failed_test(test_name, *error_info), 3)
+                        for test_name, _, *error_info in test_info
                     )
+                )
 
 
 def run_all(test_suites: list[TestSuite] = test_suites) -> Iterator:
