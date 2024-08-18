@@ -11,7 +11,7 @@ from typing import Iterator
 
 import aamm.testing.formats as fmts
 from aamm.exceptions import qualname
-from aamm.file_system import dir_up
+from aamm.file_system import current_file, dir_up
 from aamm.std import group_by, split_iter
 from aamm.strings import TAB, indent
 
@@ -44,6 +44,7 @@ class TestSuiteMeta(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
         test_suites.append(cls)
+        cls.home_path = current_file(stack_index=2)
 
 
 class TestSuite(metaclass=TestSuiteMeta):
@@ -77,7 +78,7 @@ class TestSuite(metaclass=TestSuiteMeta):
         self = cls()
         storage = []
 
-        test_path = sys.argv[0] if cls.__module__ == "__main__" else cls.__module__
+        test_path = cls.home_path
         package_path = dir_up(test_path)
         suite_name = cls.__qualname__
 
