@@ -4,7 +4,7 @@ import sys
 from contextlib import contextmanager
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Self
 from weakref import finalize
 
 import aamm.logtools.formats as fmt
@@ -180,11 +180,16 @@ class Logger:
         cls.LOG_LEVEL = log_level
 
     @contextmanager
-    def using_log_level(self, log_level: int = 1):
+    def using(self, **temporal_values):
         """Runs the `separate` method before and after the context."""
-        self.log_level, memory = log_level, self.log_level
-        yield
-        self.log_level = memory
+        original_values = {attr: getattr(self, attr) for attr in temporal_values}
+        for attr, value in temporal_values.items():
+            setattr(self, attr, value)
+        try:
+            yield
+        finally:
+            for attr, value in original_values.items():
+                setattr(self, attr, value)
 
     def write(
         self,
@@ -193,7 +198,7 @@ class Logger:
         sep: str = None,
         use_repr: bool = False,
         log_level: int = None,
-    ) -> Literal[True]:
+    ) -> Self:
         """
         DESCRIPTION
         -----------
@@ -227,10 +232,12 @@ class Logger:
 
         """
         log_level = self.log_level if log_level is None else log_level
+
         if self.enabled and log_level >= self.LOG_LEVEL:
             self.separator_cache[self.path] = True
             self._write(*values, sep=sep, end=end, use_repr=use_repr)
-        return True
+
+        return self
 
 
 class Timer(Logger):
