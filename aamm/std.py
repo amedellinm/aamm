@@ -14,11 +14,11 @@ from typing import Any, Callable, Generator, Iterable, Iterator, Sequence
 
 def all_equal(iterable: Iterable) -> bool:
     """Test equality between all elements of a sequence."""
-    first = next(others := iter(iterable))
-    for other in others:
-        if first != other:
-            return False
-    return True
+    try:
+        first = next(iterator := iter(iterable))
+    except StopIteration:
+        return True
+    return all(first == rest for rest in iterator)
 
 
 def are_sequences_equal(*sequences: tuple[Sequence]) -> bool:
