@@ -20,7 +20,7 @@ def main():
         for test_file in fs.files(test_folder):
             # Make sure "test_file" corresponds to one of the modules.
             path_base = os.path.basename(test_file)
-            if path_base not in file_names:
+            if path_base.startswith("test_") and path_base[5:] not in file_names:
                 continue
 
             import_path(test_file)
