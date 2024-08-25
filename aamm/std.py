@@ -85,7 +85,6 @@ def group_by(
     def fetch_many(row: tuple, index: tuple[int]):
         return tuple(row[i] for i in index)
 
-    grouped_data = defaultdict(list)
     data = iter(data)
 
     try:
@@ -93,19 +92,26 @@ def group_by(
     except StopIteration:
         return {}
 
+    grouped_data = defaultdict(list)
+
+    if isinstance(keys, int):
+        keys = (keys,)
     if values is None:
-        if isinstance(keys, int):
-            values = tuple(i for i in range(len(row)) if i != keys)
-            fetch_keys = fetch_one
-        else:
-            fetch_keys = fetch_many
-            values = tuple(i for i in range(len(row)) if i not in keys)
-    elif isinstance(values, int):
-        values = (values,)
+        values = tuple(i for i in range(len(row)) if i not in keys)
 
-    fetch_values = fetch_one if len(values) == 1 else fetch_many
+    if len(keys) == 1:
+        keys = keys[0]
+        fetch_keys = fetch_one
+    else:
+        fetch_keys = fetch_many
 
-    grouped_data[fetch_keys(row, keys)].append(fetch_many(row, values))
+    if len(values) == 1:
+        values = values[0]
+        fetch_values = fetch_one
+    else:
+        fetch_values = fetch_many
+
+    grouped_data[fetch_keys(row, keys)].append(fetch_values(row, values))
 
     for row in data:
         grouped_data[fetch_keys(row, keys)].append(fetch_values(row, values))
