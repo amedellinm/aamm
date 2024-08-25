@@ -7,7 +7,7 @@ from collections import namedtuple
 from itertools import chain
 from random import shuffle
 from types import EllipsisType
-from typing import Iterator
+from typing import Callable, Iterator
 
 import aamm.testing.formats as fmts
 from aamm.exceptions import qualname
@@ -85,6 +85,9 @@ class TestSuite(metaclass=TestSuiteMeta):
         cls.initialize()
 
         for test_name, test in tests:
+            if hasattr(test, "aamm.testing-skip_test"):
+                continue
+
             self.before()
 
             try:
@@ -192,3 +195,8 @@ def main(
 
 def run_all(test_suites: list[TestSuite] = test_suites) -> Iterator:
     return chain.from_iterable(test_suite.run() for test_suite in test_suites)
+
+
+def skip(test: Callable):
+    setattr(test, "aamm.testing-skip_test", None)
+    return test
