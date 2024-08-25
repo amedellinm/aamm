@@ -119,6 +119,24 @@ def group_by(
     return grouped_data
 
 
+def hinted_sort(
+    sequence: Iterable,
+    hint: list,
+    key: Callable | None = None,
+    reverse: bool = False,
+) -> list:
+    hint = {value: index for index, value in enumerate(hint)}
+    default = len(hint)
+
+    if key is None:
+        key = lambda x: x
+
+    def hinted_key(value):
+        return (hint.get(value, default), key(value))
+
+    return sorted(sequence, key=hinted_key, reverse=reverse)
+
+
 def import_path(path: str | Path) -> ModuleType:
     """Imports a Python module (.py) from a path"""
     module_name, _ = os.path.splitext(os.path.basename(path))
@@ -157,34 +175,6 @@ def loop(iterable: Iterable, n: int | None = None) -> Generator:
     else:
         for _ in range(n):
             yield from iterable
-
-
-def mod_complement(numerator: int, denominator: int) -> int:
-    """Difference between `numerator` and the next multiple of `denominator`"""
-    mod = numerator % denominator
-    return denominator - mod if mod else 0
-
-
-def partial_sort(
-    sequence: Iterable,
-    preset: list,
-    key: Callable = None,
-    reverse: bool = False,
-    insert_index: int = 0,
-    strict: bool = True,
-) -> list:
-    sorted_sequence = sorted(sequence, key=key, reverse=reverse)
-    matching_preset = [i for i in preset if i in sorted_sequence]
-    sorted_sequence = [i for i in sorted_sequence if not i in preset]
-
-    if matching_preset != preset and strict:
-        raise ValueError("Missing element(s) of `preset` inside `sequence`.")
-
-    return (
-        sorted_sequence[:insert_index]
-        + matching_preset
-        + sorted_sequence[insert_index:]
-    )
 
 
 def qualname(obj: Any) -> str:
