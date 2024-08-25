@@ -160,13 +160,6 @@ def is_divisible(numerator: int, denominator: int) -> bool:
     return not (numerator % denominator)
 
 
-def iterbits(array: bytearray) -> Generator:
-    """Yields all bits from a `bytearray` in order."""
-    for byte in array:
-        for n in range(7, -1, -1):
-            yield bool(byte & 2**n)
-
-
 def loop(iterable: Iterable, n: int | None = None) -> Generator:
     """Iterates over `iterable` in a cyclic fashion `n` times or indefinitely."""
     if n is None:
@@ -180,17 +173,6 @@ def loop(iterable: Iterable, n: int | None = None) -> Generator:
 def qualname(obj: Any) -> str:
     """Returns the qualname of an object's type"""
     return type(obj).__qualname__
-
-
-def raise_many(*exceptions: tuple[Exception | None], message: str = "") -> None:
-    exceptions = tuple(e for e in exceptions if e is not None)
-    match len(exceptions):
-        case 0:
-            return
-        case 1:
-            raise exceptions[0]
-        case _:
-            raise ExceptionGroup(message, exceptions)
 
 
 def sign(number: Number, negative: Any = -1, zero: Any = 0, positive: Any = 1) -> Any:
