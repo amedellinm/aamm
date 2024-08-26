@@ -40,7 +40,7 @@ class Logger:
             self.target = sys.stdout
         else:
             self.path = os.path.join(
-                root or os.path.join(current_folder(), self.FOLDER_NAME),
+                root or os.path.join(current_folder(stack_index=2), self.FOLDER_NAME),
                 file or current_file("log", stack_index=2),
             )
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
