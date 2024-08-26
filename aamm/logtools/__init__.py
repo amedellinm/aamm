@@ -165,7 +165,7 @@ class Logger:
 
     def flush(self):
         self.write(self._buffer.getvalue())
-        self._buffer.flush()
+        self._buffer.truncate()
 
     def separate(self, multiplier: int = 2) -> Literal[True]:
         """Logs `multiplier * self.END`. Consecutive calls do nothing."""
