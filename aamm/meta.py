@@ -1,6 +1,8 @@
+import inspect
 import sys
 from contextlib import contextmanager
 from functools import wraps
+from types import GenericAlias
 from typing import Callable, Literal
 
 from aamm.exceptions.formats import attribute_error
@@ -9,7 +11,7 @@ from aamm.std import qualname
 
 @contextmanager
 def capture_stdout(file_path: str, mode: str = "a"):
-    """Temporarily redirects the stdout traffic to `file_path`."""
+    """Temporarily redirect the stdout traffic to `file_path`."""
     stdout = sys.stdout
     with open(file_path, mode) as file:
         sys.stdout = file
@@ -48,6 +50,31 @@ def not_implemented_method(method: Callable) -> Callable:
     return function
 
 
+def typehint_handlers(cases: dict[type | GenericAlias, Callable]):
+    def decorator(function: Callable) -> Callable:
+        typehint_map = {
+            arg: cases[typehint]
+            for arg, typehint in function.__annotations__.items()
+            if typehint in cases
+        }
+
+        signature = inspect.signature(function)
+
+        @wraps(function)
+        def decorated(*args, **kwargs):
+            bound_args = signature.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+
+            for arg, mapper in typehint_map.items():
+                bound_args.arguments[arg] = mapper(bound_args.arguments[arg])
+
+            return function(*bound_args.args, **bound_args.kwargs)
+
+        return decorated
+
+    return decorator
+
+
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
@@ -81,7 +108,7 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
 
 
 class ReadOnlyProperty:
-    """Descriptor that allows one single write operation then becomes read-only."""
+    """Allow one write operation, then become read-only."""
 
     def __set_name__(self, _, name):
         self.display_name = name
