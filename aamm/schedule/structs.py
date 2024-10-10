@@ -94,9 +94,11 @@ class YearMonth:
         raise OperandError(self, other, "-")
 
     def current_month() -> int:
+        """Return the month of today."""
         return Date.today().month
 
     def current_year() -> int:
+        """Return the year of today."""
         return Date.today().year
 
     @classmethod
@@ -133,26 +135,26 @@ class YearMonth:
 
         PARAMETERS
         ----------
-        ### shift: int = 0
-            * the sequence starts from `self` shifted `shift` months.
-            * the first end is closed, therefore the first element is always included
+        shift:
+            * The sequence starts from `self` shifted `shift` months.
+            * The first end is closed, therefore the first element is always included
               in the sequence.
 
-        ### end: int | Self | None = None
-            * the limit of the sequence.
-            * if `end` is `int`, use the beggining of the sequence shifted `end` months
+        end:
+            * The limit of the sequence.
+            * If `end` is `int`, use the beggining of the sequence shifted `end` months
               as the end of the sequence.
-            * if `end` is `YearMonth`, use it directly.
-            * if `end` is `None`, use the value passed as `shift` and `shift` defaults
-              to `0`.
+            * If `end` is `YearMonth`, use it directly.
+            * If `end` is `None`, use the value of `shift`, and `shift` defaults to `0`.
 
-        ### step: int = 1
-            * number of months advanced each iteration.
-            * the sign of `step` is inferred, use positive integers only.
+        step:
+            * Number of months advanced each iteration.
+            * The sign of `step` is ignored and inferred from the range.
 
-        ### include_last: bool = True
-            * This argument is only used if `end` is `YearMonth`.
-            * if `True`, turns the range from [start, end) to [start, end].
+        include_last:
+            * If `True`, turns the range from [start, end) to [start, end].
+            * This argument is only used if `end` is `Self`, otherwise, the
+              range is always [start, end).
 
         """
 
@@ -165,7 +167,7 @@ class YearMonth:
             end -= start
             end += sign(end) * include_last
 
-        return (start + i for i in range(0, end, sign(end, 1) * step))
+        return (start + i for i in range(0, end, sign(end, 1) * abs(step)))
 
     @property
     def month(self) -> int:
