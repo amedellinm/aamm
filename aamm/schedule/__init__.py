@@ -36,7 +36,7 @@ def date_range(
     include_last:
         * If `True`, turns the range from [start, end) to [start, end].
         * This argument is only used if `end` is `datetime.date`, otherwise, the range
-          is always [start, end).
+          length is always `end`.
 
     """
 
