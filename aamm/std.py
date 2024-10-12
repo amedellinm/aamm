@@ -126,8 +126,8 @@ def hinted_sort(
     key: Callable | None = None,
     reverse: bool = False,
 ) -> list:
-    """Sort `sequence` giving special treatement to the elementes in `hint`."""
-    hint = dict(enumerate(hint))
+    """Sort `sequence` giving special treatement to the elements in `hint`."""
+    hint = {element: index for index, element in enumerate(hint)}
     default = len(hint)
 
     if key is None:
