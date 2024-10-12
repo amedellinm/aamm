@@ -78,6 +78,7 @@ def group_by(
     keys: int | Sequence[int] = 0,
     values: int | Sequence[int] | None = None,
 ) -> dict:
+    """Group data based on the indices given as `keys` and `values`."""
 
     def fetch_one(row: tuple, index: int):
         return row[index]
@@ -121,11 +122,12 @@ def group_by(
 
 def hinted_sort(
     sequence: Iterable,
-    hint: list,
+    hint: Sequence,
     key: Callable | None = None,
     reverse: bool = False,
 ) -> list:
-    hint = {value: index for index, value in enumerate(hint)}
+    """Sort `sequence` giving special treatement to the elementes in `hint`."""
+    hint = dict(enumerate(hint))
     default = len(hint)
 
     if key is None:
@@ -176,6 +178,7 @@ def qualname(obj: Any) -> str:
 
 
 def sign(number: Number, negative: Any = -1, zero: Any = 0, positive: Any = 1) -> Any:
+    """return `negative`, `zero` or `positive` base on the sign of `number`."""
     return zero if number == 0 else positive if number > 0 else negative
 
 
@@ -188,6 +191,7 @@ def skip_iter(iterable: Iterable, n: int = 1) -> Iterator:
 
 
 def split_iter(iterable: Iterable, condition: Callable):
+    """Split `iterable` in two lists using a boolean-returning callable as key."""
     true_group = []
     false_group = []
 
