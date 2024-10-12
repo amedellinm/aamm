@@ -1,11 +1,14 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
+authors = [{ name = "Antonio A. Medellín", email = "amedellinm@outlook.com" }]
 name = "aamm"
 version = "0.2.0"
 
-[tool.setuptools]
+[tool.hatch.build]
+exclude = ["**/__*/**"]
+
+[tool.hatch.build.targets.wheel]
 packages = ["aamm"]
-
-
