@@ -44,7 +44,7 @@ class TestSuiteMeta(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
         test_suites.append(cls)
-        cls.home_path = current_file(stack_index=2)
+        cls.home_path = current_file(stack_index=1)
 
 
 class TestSuite(metaclass=TestSuiteMeta):
