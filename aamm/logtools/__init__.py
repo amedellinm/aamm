@@ -93,8 +93,7 @@ class Logger:
 
     @contextmanager
     def capture_stdout(self):
-        with self.capture_stream(sys.stdout):
-            yield
+        return self.capture_stream(sys.stdout)
 
     @contextmanager
     def capture_stream(self, stream: io.TextIOBase):
