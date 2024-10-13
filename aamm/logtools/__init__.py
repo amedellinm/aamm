@@ -97,7 +97,7 @@ class Logger:
 
     @contextmanager
     def capture_stream(self, stream: io.TextIOBase):
-        write, stream.write = stream.write, self.target.write
+        write, stream.write = stream.write, self.stream.write
         try:
             yield
         finally:
