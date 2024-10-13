@@ -139,16 +139,29 @@ class Logger:
         return True
 
     @contextmanager
-    def using(self, **temporal_values):
+    def using(
+        self,
+        SEP: str | None = None,
+        END: str | None = None,
+        LOG_LEVEL: str | None = None,
+    ):
         """Runs the `separate` method before and after the context."""
-        original_values = {attr: getattr(self, attr) for attr in temporal_values}
-        for attr, value in temporal_values.items():
-            setattr(self, attr, value)
+        cls = type(self)
+
+        cls_SEP = cls.SEP
+        cls_END = cls.END
+        cls_LOG_LEVEL = cls.LOG_LEVEL
+
+        cls.SEP = cls.SEP if SEP is None else SEP
+        cls.END = cls.END if END is None else END
+        cls.LOG_LEVEL = cls.LOG_LEVEL if LOG_LEVEL is None else LOG_LEVEL
+
         try:
             yield
         finally:
-            for attr, value in original_values.items():
-                setattr(self, attr, value)
+            cls.SEP = cls_SEP
+            cls.END = cls_END
+            cls.LOG_LEVEL = cls_LOG_LEVEL
 
     def write(
         self,
