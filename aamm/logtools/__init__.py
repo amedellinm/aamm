@@ -83,64 +83,8 @@ class Logger:
             for callback, args, kwargs in self.callbacks:
                 callback(*args, **kwargs)
         finally:
-            if self.target is not sys.stdout:
-                self.target.close()
-
-    def _write(
-        self,
-        *values: tuple[str],
-        sep: str = None,
-        end: str = None,
-        use_repr: bool = False,
-    ) -> None:
-        """Raw logging. Surpasses all checks and separation management"""
-        end = self.END if end is None else end
-        sep = self.SEP if sep is None else sep
-        self.target.write(sep.join(map(repr if use_repr else str, values)) + end)
-
-    def buffer(
-        self,
-        *values: tuple[Any],
-        end: str = None,
-        sep: str = None,
-        use_repr: bool = False,
-        log_level: int = None,
-    ) -> Literal[True]:
-        """
-        DESCRIPTION
-        -----------
-        Runs `self.write` in a buffered manner. It has to be flushed via `self.flush`.
-
-        PARAMETERS
-        ----------
-        ### end:
-            - String appended at the end of the constructed message.
-            - Uses `self.END` if `None`.
-
-        ### sep:
-            - String used to join `values`.
-            - Uses `self.SEP` if `None`.
-
-        ### use_repr:
-            - Decides how to convert `values` to strings.
-            - If `True` uses `repr`.
-            - If `False` uses `str`.
-
-        ### log_level:
-            - Level of the log operation.
-            - If `None` uses `self.log_level`.
-            - A log_level lower than `self.LOG_LEVEL` wont log.
-
-        RETURNS
-        -------
-        ### bool:
-            - A literal `True`.
-
-        """
-        self.target, target = self._buffer, self.target
-        self.write(*values, end, sep, use_repr, log_level)
-        self.target = target
-        return True
+            if self.stream is not sys.stdout:
+                self.stream.close()
 
     @contextmanager
     def capture_stderr(self):
