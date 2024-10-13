@@ -4,7 +4,7 @@ import sys
 from contextlib import contextmanager
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, Literal, Self
+from typing import Any, Callable, Literal
 from weakref import finalize
 
 import aamm.logtools.formats as fmt
