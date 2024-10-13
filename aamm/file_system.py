@@ -91,8 +91,9 @@ def directories(
 
 
 def has_extension(path: str, extension: str = None) -> bool:
-    """If given, `extension` must have a leading dot e.g. `".py"`."""
-    ext = os.path.splitext(path)[1]
+    """Check `path` has extension `extension`."""
+    ext = os.path.splitext(path)[1].removeprefix(".")
+    extension = extension.removeprefix(".")
     return bool(ext) if extension is None else extension == ext
 
 
