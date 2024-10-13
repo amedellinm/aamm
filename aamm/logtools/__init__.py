@@ -167,28 +167,28 @@ class Logger:
 
         PARAMETERS
         ----------
-        ### end:
-            - String appended at the end of the constructed message.
-            - Uses `self.END` if `None`.
+        end:
+            * String appended at the end of the constructed message.
+            * Uses `self.END` if `None`.
 
-        ### sep:
-            - String used to join `values`.
-            - Uses `self.SEP` if `None`.
+        sep:
+            * String used to join `values`.
+            * Uses `self.SEP` if `None`.
 
-        ### use_repr:
-            - Decides how to convert `values` to strings.
-            - If `True` uses `repr`.
-            - If `False` uses `str`.
+        use_repr:
+            * Decides how to convert `values` to strings.
+            * If `True` uses `repr`.
+            * If `False` uses `str`.
 
-        ### log_level:
-            - Level of the log operation.
-            - If `None` uses `self.log_level`.
-            - A log_level lower than `self.LOG_LEVEL` wont log.
+        log_level:
+            * Level of the log operation.
+            * If `None` uses `self.log_level`.
+            * A log_level lower than `self.LOG_LEVEL` wont log.
 
         RETURNS
         -------
-        ### bool:
-            - A literal `True`.
+        bool:
+            * A literal `True`.
 
         """
         log_level = self.log_level if log_level is None else log_level
