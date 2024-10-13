@@ -33,6 +33,8 @@ class Logger:
         use_stdout: bool = True,
         stack_index: int = 0,
     ) -> None:
+        self.buffer = io.StringIO()
+        self.buffered_end = ""
         self.callbacks = []
         self.enabled = enabled
         self.log_level = log_level
@@ -55,8 +57,6 @@ class Logger:
 
         if separate:
             self.separate()
-
-        self._buffer = io.StringIO()
 
         finalize(self, self._final_dispatch)
 
@@ -153,9 +153,15 @@ class Logger:
 
     def clear_file(self) -> Literal[True]:
         """Clears the file the logger instance points to"""
-        if self.target is not sys.stdout:
-            self.target.truncate(0)
-            self.target.seek(0)
+        if self.stream is not sys.stdout:
+            self.stream.seek(0)
+            self.stream.truncate(0)
+        return True
+
+    def flush(self) -> Literal[True]:
+        self.stream.write(self.buffer.getvalue())
+        self.buffer.seek(0)
+        self.buffer.truncate(0)
         return True
 
     @contextmanager
@@ -165,15 +171,13 @@ class Logger:
         yield
         self.separate(multiplier_exit)
 
-    def flush(self):
-        self.write(self._buffer.getvalue())
-        self._buffer.truncate()
-
     def separate(self, multiplier: int = 2) -> Literal[True]:
         """Logs `multiplier * self.END`. Consecutive calls do nothing."""
         if self.separator_cache[self.path]:
             self.separator_cache[self.path] = False
-            self.write(multiplier * self.END, sep="", end="")
+            self.buffered_end = ""
+            self.write("", sep="", end=(multiplier + 1) * self.END)
+
         return True
 
     @classmethod
@@ -200,6 +204,7 @@ class Logger:
         sep: str = None,
         use_repr: bool = False,
         log_level: int = None,
+        flush: int = True,
     ) -> Self:
         """
         DESCRIPTION
@@ -237,7 +242,15 @@ class Logger:
 
         if self.enabled and log_level >= self.LOG_LEVEL:
             self.separator_cache[self.path] = True
-            self._write(*values, sep=sep, end=end, use_repr=use_repr)
+            end = self.END if end is None else end
+            sep = self.SEP if sep is None else sep
+            msg = self.buffered_end + sep.join(map(repr if use_repr else str, values))
+            self.buffered_end = end
+
+            self.buffer.write(msg)
+
+            if flush:
+                self.flush()
 
         return self
 
