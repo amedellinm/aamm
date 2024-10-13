@@ -13,10 +13,11 @@ from aamm.file_system import current_directory, current_file
 
 class Logger:
     FOLDER_NAME = "__logs"
-    LOG_LEVEL = 0
 
-    END = "\n"
     SEP = " "
+    END = "\n"
+
+    LOG_LEVEL = 0
 
     separator_cache = {}
 
