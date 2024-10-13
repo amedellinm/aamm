@@ -39,24 +39,33 @@ class Logger:
         self.enabled = enabled
         self.log_level = log_level
 
-        if use_stdout:
-            self.path = None
-            self.target = sys.stdout
-        else:
-            self.path = os.path.join(
-                root or os.path.join(current_folder(stack_index=2), self.FOLDER_NAME),
-                file or current_file("log", stack_index=2),
-            )
-            os.makedirs(os.path.dirname(self.path), exist_ok=True)
-            self.target = open(self.path, "a")
+        # Construct path
+        stack_index += 1
+        directory = current_directory(stack_index=stack_index)
+        file_name = current_file("log", name_only=True, stack_index=stack_index)
 
+        path = os.path.join(
+            root or os.path.join(directory, self.FOLDER_NAME),
+            file or file_name,
+        )
+
+        self.path = None if use_stdout else path
         self.separator_cache.setdefault(self.path, True)
 
-        if clear_file:
-            self.clear_file()
-
-        if separate:
+        if use_stdout:
+            self.path = None
+            self.stream = sys.stdout
+            self.write(f"[LOGGER] Set `use_stdout = False` to write to:\n\t{path}")
             self.separate()
+        else:
+            path_existed = os.path.exists(path)
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+            self.stream = open(self.path, "a")
+
+            if clear_file:
+                self.clear_file()
+            elif separate and path_existed:
+                self.separate()
 
         finalize(self, self._final_dispatch)
 
