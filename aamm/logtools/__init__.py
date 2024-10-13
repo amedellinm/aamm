@@ -30,7 +30,8 @@ class Logger:
         enabled: bool = True,
         log_level: int = 0,
         separate: bool = True,
-        use_stdout: bool = False,
+        use_stdout: bool = True,
+        stack_index: int = 0,
     ) -> None:
         self.callbacks = []
         self.enabled = enabled
