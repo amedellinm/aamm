@@ -181,9 +181,10 @@ class Logger:
         return True
 
     @classmethod
-    def set_global_log_level(cls, log_level: int):
+    def set_global_log_level(cls, log_level: int) -> Literal[True]:
         """For all instances, sets the minimum log_level required to log"""
         cls.LOG_LEVEL = log_level
+        return True
 
     @contextmanager
     def using(self, **temporal_values):
@@ -205,7 +206,7 @@ class Logger:
         use_repr: bool = False,
         log_level: int = None,
         flush: int = True,
-    ) -> Self:
+    ) -> Literal[True]:
         """
         DESCRIPTION
         -----------
@@ -252,7 +253,7 @@ class Logger:
             if flush:
                 self.flush()
 
-        return self
+        return True
 
 
 class Timer(Logger):
