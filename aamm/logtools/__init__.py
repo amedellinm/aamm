@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal, Self
 from weakref import finalize
 
 import aamm.logtools.formats as fmt
-from aamm.file_system import current_file, current_folder
+from aamm.file_system import current_directory, current_file
 
 
 class Logger:
