@@ -26,6 +26,7 @@ def current_file(
     name_only: bool = False,
     stack_index: int = 0,
 ) -> str:
+    """Get the path of the source file of the caller."""
     file = inspect.stack()[stack_index + 1].frame.f_globals["__file__"]
     if name_only:
         file = os.path.basename(file)
@@ -41,6 +42,7 @@ def current_file(
 
 
 def current_directory(name_only: bool = False, stack_index: int = 0) -> str:
+    """Get the path of the directory of the caller."""
     directory_path = os.path.dirname(current_file(stack_index=stack_index + 1))
     return os.path.basename(directory_path) if name_only else directory_path
 
@@ -72,6 +74,7 @@ def files(
 
 
 def file_name(path: str) -> tuple[str, str]:
+    """Return the name and the extension of a file path."""
     return os.path.splitext(os.path.basename(path))
 
 
