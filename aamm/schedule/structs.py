@@ -3,8 +3,7 @@ from datetime import date as Date
 from typing import Iterator, Self
 
 import aamm.strings.match as match
-from aamm.exceptions import OperandError, assert_domain
-from aamm.exceptions.formats import index_error, type_error
+from aamm.logtools.formats import index_error, operand_error, type_error
 from aamm.meta import ReadOnlyProperty
 from aamm.std import qualname, sign
 
@@ -18,7 +17,7 @@ class YearMonth:
     def __add__(self, other: int) -> Self:
         if isinstance(other, int):
             return type(self)(self.value + other)
-        raise OperandError(self, other, "+")
+        raise TypeError(operand_error("+", self, other))
 
     def __eq__(self, other: Self) -> bool:
         return self.value == other.value
@@ -56,8 +55,6 @@ class YearMonth:
         if month is None:
             self.value = year
             return
-        assert_domain("year", year, 0, 9999),
-        assert_domain("month", month, 1, 12),
         self.value = 12 * year + month - 1
 
     def __isub__(self, other: int | Self) -> Self | int:
@@ -85,11 +82,11 @@ class YearMonth:
         return f"{self.year:>04}-{self.month:>02}"
 
     def __sub__(self, other: int | Self) -> Self | int:
-        if isinstance(other, TypeSelf := type(self)):
+        if isinstance(other, cls := type(self)):
             return self.value - other.value
         elif isinstance(other, int):
-            return TypeSelf(self.value - other)
-        raise OperandError(self, other, "-")
+            return cls(self.value - other)
+        raise TypeError(operand_error("-", self, other))
 
     def current_month() -> int:
         """Return today's month."""
