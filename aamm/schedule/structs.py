@@ -13,7 +13,6 @@ class YearMonth:
     """Date-like object, holds a pair year-month."""
 
     is_yearmonth_string = match.create_matcher(r"^\d{4}(0[1-9]|1[0-2])$")
-    max_value = 12 * 9999 + 11
     value = ReadOnlyProperty()
 
     def __add__(self, other: int) -> Self:
@@ -55,7 +54,6 @@ class YearMonth:
 
     def __init__(self, year: int, month: int | None = None) -> None:
         if month is None:
-            assert_domain("value", year, 0, self.max_value, throw=True)
             self.value = year
             return
         assert_domain("year", year, 0, 9999),
