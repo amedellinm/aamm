@@ -99,6 +99,13 @@ class YearMonth:
         """Return today's year."""
         return Date.today().year
 
+    def elapse(self, yearmonth: Self, step: int = 1) -> Iterator[Self]:
+        """Generate `YearMonth` objects going from `self` to `yearmonth`."""
+        length = yearmonth.value - self.value
+        s = sign(length)
+        length += s
+        return self.range(length, s * abs(step))
+
     @classmethod
     def from_date(cls, date: Date | None = None) -> Self:
         """Construct from an object with year and month properties."""
@@ -118,57 +125,13 @@ class YearMonth:
             raise ValueError(f"unable to interpret '{string}' as {cls.__qualname__}")
         return cls(int(string[:-2]), int(string[-2:]))
 
-    def elapse(
-        self,
-        shift: int = 0,
-        end: int | Self | None = None,
-        step: int = 1,
-        include_last: bool = True,
-    ) -> Iterator[Self]:
-        """
-        DESCRIPTION
-        -----------
-        Generate a sequence of `YearMonth` objects relative to `self`.
-
-        PARAMETERS
-        ----------
-        shift:
-            * The sequence starts from `self` shifted `shift` months.
-            * The first end is closed, therefore the first element is always included
-              in the sequence.
-
-        end:
-            * The limit of the sequence.
-            * If `end` is `int`, use the beggining of the sequence shifted `end` months
-              as the end of the sequence.
-            * If `end` is `YearMonth`, use it directly.
-            * If `end` is `None`, use the value of `shift`, and `shift` defaults to `0`.
-
-        step:
-            * Number of months advanced each iteration.
-            * The sign of `step` is ignored and inferred from the range.
-
-        include_last:
-            * If `True`, turns the range from [start, end) to [start, end].
-            * This argument is only used if `end` is `Self`, otherwise, the
-              range is always [start, end).
-
-        """
-
-        if end is None:
-            shift, end = 0, shift
-
-        start = self + shift
-
-        if isinstance(end, type(self)):
-            end -= start
-            end += sign(end) * include_last
-
-        return (start + i for i in range(0, end, sign(end, 1) * abs(step)))
-
     @property
     def month(self) -> int:
         return self.value % 12 + 1
+
+    def range(self, length: int, step: int = 1) -> Iterator[Self]:
+        """Generate `YearMonth` objects going from `self` to `self + length`."""
+        return (self + i for i in range(0, length, sign(length) * abs(step)))
 
     def raw_string(self) -> str:
         """Return a raw representation of `self` as a string in the format 'YYYYMM'."""
