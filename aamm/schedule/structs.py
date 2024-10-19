@@ -92,11 +92,11 @@ class YearMonth:
         raise OperandError(self, other, "-")
 
     def current_month() -> int:
-        """Return the month of today."""
+        """Return today's month."""
         return Date.today().month
 
     def current_year() -> int:
-        """Return the year of today."""
+        """Return today's year."""
         return Date.today().year
 
     @classmethod
@@ -108,8 +108,7 @@ class YearMonth:
 
     @classmethod
     def from_integer(cls, integer: int) -> Self:
-        """Construct from a valid `int` object."""
-        assert_domain("integer", integer, 1, 999912, throw=True)
+        """Construct from a valid `int` object YYYYMM."""
         return cls.from_string(f"{integer:>06}")
 
     @classmethod
@@ -172,7 +171,7 @@ class YearMonth:
         return self.value % 12 + 1
 
     def raw_string(self) -> str:
-        """Return a raw representation of `self` as a `string`."""
+        """Return a raw representation of `self` as a string in the format 'YYYYMM'."""
         return f"{self.year:>04}{self.month:>02}"
 
     @property
