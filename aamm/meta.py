@@ -5,7 +5,7 @@ from functools import wraps
 from types import GenericAlias
 from typing import Callable, Literal
 
-from aamm.exceptions.formats import attribute_error
+from aamm.logtools.formats import attribute_error
 from aamm.std import qualname
 
 
