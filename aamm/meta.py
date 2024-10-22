@@ -1,4 +1,5 @@
 import inspect
+import io
 import sys
 from contextlib import contextmanager
 from functools import wraps
@@ -6,51 +7,36 @@ from types import GenericAlias
 from typing import Callable, Literal
 
 from aamm.logtools.formats import attribute_error
-from aamm.std import qualname
 
 
 @contextmanager
-def capture_stdout(file_path: str, mode: str = "a"):
-    """Temporarily redirect the stdout traffic to `file_path`."""
-    stdout = sys.stdout
-    with open(file_path, mode) as file:
-        sys.stdout = file
-        try:
-            yield file
-        finally:
-            sys.stdout = stdout
+def capture_stdout(stream: io.TextIOBase):
+    """Temporarily redirect the stdout traffic to `stream`."""
+    stdout, sys.stdout = sys.stdout, stream
+    try:
+        yield stream
+    finally:
+        sys.stdout = stdout
 
 
-def deprecation(msg: Callable | str) -> Callable:
-    """Prints a deprecation warning message before every call."""
+def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
+    """
+    DESCRIPTION
+    -----------
+    Generate a decorator that transforms the arguments passed to the decorated function
+    base on their typehints.
 
-    def decorator(function: Callable) -> Callable:
-        @wraps
-        def decorated(*args, **kwargs):
-            print(msg)
-            return function(*args, **kwargs)
+    PARAMETERS
+    ----------
+    cases:
+        * The mapping indicates how to transform each argument.
+        * Keys are valid typehints.
+        * Values are callables that receive, transform, and return a single
+          argument.
+        * Typehints not present in the mapping are left unchanged.
 
-        return decorated
+    """
 
-    if isinstance(msg, Callable):
-        f = decorator(msg)
-        msg = f"Function {function.__name__} is scheduled for deprecation"
-        return f
-
-    return decorator
-
-
-def not_implemented_method(method: Callable) -> Callable:
-    @wraps(method)
-    def function(self, *args, **kwargs):
-        raise NotImplementedError(
-            f"method '{method.__name__}' not implemented in class '{qualname(self)}'"
-        )
-
-    return function
-
-
-def typehint_handlers(cases: dict[type | GenericAlias, Callable]):
     def decorator(function: Callable) -> Callable:
         typehint_map = {
             arg: cases[typehint]
@@ -86,6 +72,14 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
 
     >>> "anything" in ConstantBooleanOperations({"__contains__": True})
     True
+
+    PARAMETERS
+    ----------
+    boolean_methods:
+        * The mapping indicates the boolean operations to fix and their value.
+        * Keys are valid boolean dunder methods.
+        * Values are the booleans always returned by the methods.
+        * Dunder method names are not validated.
 
     """
 
