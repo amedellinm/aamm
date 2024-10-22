@@ -1,33 +1,46 @@
-import filecmp
 import inspect
 import os
 from types import EllipsisType
 from typing import Callable, Iterator
 
-import aamm.strings.match as match
-from aamm.std import breadth_first, depth_first
+from aamm.std import breadth_first
 
 
-def are_directories_equal(d1: str, d2: str) -> bool:
-    """Check stat-based equality between two dir trees."""
-    for cmp in depth_first(
-        filecmp.dircmp(d1, d2, ignore=[]), lambda x: x.subdirs.values()
-    ):
-        try:
-            if cmp.diff_files:
-                return False
-        except FileNotFoundError:
-            return False
-    return True
+def current_directory(name_only: bool = False, stack_index: int = 0) -> str:
+    """Get the directory path of the source file of the caller."""
+    directory_path = os.path.dirname(current_file(stack_index=stack_index + 1))
+    return os.path.basename(directory_path) if name_only else directory_path
 
 
 def current_file(
-    extension: str | EllipsisType | None = ...,
+    extension: EllipsisType | None | str = ...,
     name_only: bool = False,
     stack_index: int = 0,
 ) -> str:
-    """Get the path of the source file of the caller."""
+    """
+    DESCRIPTION
+    -----------
+    Get the path of the source file of the caller.
+
+    PARAMETERS
+    ----------
+    extension:
+        * If `...` get the path with its original extension.
+        * If `None` get the path without the dot and the extension.
+        * If `str` get the path substituting its original extension with `extension`.
+        * `extension` is not expected to have a leading dot.
+
+    name_only:
+        * If `False` get the full path.
+        * If `True` get only the basename of the path.
+
+    stack_index:
+        * The stack index used by `inspect`. Index `0` is the stack of the caller.
+
+    """
+
     file = inspect.stack()[stack_index + 1].frame.f_globals["__file__"]
+
     if name_only:
         file = os.path.basename(file)
 
@@ -41,94 +54,49 @@ def current_file(
     return name + "." + extension
 
 
-def current_directory(name_only: bool = False, stack_index: int = 0) -> str:
-    """Get the path of the directory of the caller."""
-    directory_path = os.path.dirname(current_file(stack_index=stack_index + 1))
-    return os.path.basename(directory_path) if name_only else directory_path
-
-
-def dir_up(path: str | None = None, n: int = 1, stack_index: int = 0) -> str:
-    """Returns `n` directories up the given path."""
-    if path is None:
-        path = current_directory(stack_index=stack_index + 1)
-    elif os.path.isfile(path):
-        path = os.path.dirname(path)
-    for _ in range(n):
-        path = os.path.dirname(path)
-    return path
-
-
-def files(
-    path: str | None = None, names_only: bool = False, stack_index: int = 0
-) -> list[str]:
-    """List all files in `path`."""
-    if path is None:
-        path = current_directory(stack_index=stack_index + 1)
+def directories(root: str, names_only: bool = False) -> list[str]:
+    """List all directories in `root`."""
     try:
-        root, _, subpaths = next(os.walk(path))
+        root, paths, _ = next(os.walk(root))
     except StopIteration:
         return []
     if names_only:
-        return subpaths
-    return [os.path.join(root, subpath) for subpath in subpaths]
+        return paths
+    return [os.path.join(root, subpath) for subpath in paths]
 
 
-def file_name(path: str) -> tuple[str, str]:
-    """Return the name and the extension of a file path."""
-    return os.path.splitext(os.path.basename(path))
-
-
-def directories(
-    path: str | None = None, names_only: bool = False, stack_index: int = 0
-) -> list[str]:
-    """List all directories in `path`."""
-    if path is None:
-        path = current_directory(stack_index=stack_index + 1)
+def files(root: str, names_only: bool = False) -> list[str]:
+    """List all files in `root`."""
     try:
-        root, subpaths, _ = next(os.walk(path))
+        root, _, paths = next(os.walk(root))
     except StopIteration:
         return []
     if names_only:
-        return subpaths
-    return [os.path.join(root, subpath) for subpath in subpaths]
+        return paths
+    return [os.path.join(root, subpath) for subpath in paths]
 
 
 def has_extension(path: str, extension: str = None) -> bool:
     """Check `path` has extension `extension`."""
-    ext = os.path.splitext(path)[1].removeprefix(".")
-    extension = extension.removeprefix(".")
-    return bool(ext) if extension is None else extension == ext
+    obtained = os.path.splitext(path)[1].removeprefix(".")
+    expected = extension.removeprefix(".")
+    return bool(obtained) if expected is None else expected == obtained
 
 
-def here(file_name: str = "", stack_index: int = 0) -> str:
-    """Constructs the path of a file in the current directory."""
-    return os.path.join(current_directory(stack_index=stack_index + 1), file_name)
+def here(filename: str, stack_index: int = 0) -> str:
+    """Construct the path of a file in the current directory."""
+    return os.path.join(current_directory(stack_index=stack_index + 1), filename)
 
 
-def search(
-    root: str | EllipsisType | None = None,
-    condition: str | Callable | None = None,
-    use_complement: bool = False,
-    use_breadth_first: bool = False,
-    stack_index: int = 0,
-) -> Iterator[str]:
-    """From `root`, depth-first traverses directories according to `condition`."""
-    if root is None:
-        root = current_directory(stack_index=stack_index + 1)
-    elif root is ...:
-        root = os.getcwd()
+def search(root: str, condition: Callable = lambda _: True) -> Iterator[str]:
+    """From `root`, depth-first traverse directories according to `condition`."""
+    return breadth_first(
+        root, lambda node: directories(node) if condition(node) else ()
+    )
 
-    explore = breadth_first if use_breadth_first else depth_first
 
-    if condition is None:
-        return explore(root, expand=directories)
-
-    if isinstance(condition, str):
-        condition = match.create_matcher(condition)
-
-    def expand(node):
-        if condition(node) ^ use_complement:
-            return directories(node)
-        return ()
-
-    return explore(root, expand)
+def up(path: str, n: int = 1) -> str:
+    """Move `n` segments up the given path."""
+    for _ in range(n):
+        path = os.path.dirname(path)
+    return path
