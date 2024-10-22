@@ -22,13 +22,13 @@ class RNG(np.random.Generator):
         return f"{type(self).__qualname__}({self.seed})"
 
     def booleans(self, p: float = 0.5, size: int = None) -> bool | np.ndarray[bool]:
-        """Returns the result of a Bernoulli trial as a `bool`."""
+        """Return the result of Bernoulli trials as `bool`s."""
         return self.random(size) < p
 
     def get_state(self) -> dict:
-        """Gets the rng state."""
+        """Get the rng state."""
         return deepcopy(self.bit_generator.state)
 
     def set_state(self, state: dict) -> None:
-        """Sets the rng state."""
+        """Set the rng state."""
         self.bit_generator.state = state
