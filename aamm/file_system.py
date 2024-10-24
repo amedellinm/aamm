@@ -3,7 +3,7 @@ import os
 from types import EllipsisType
 from typing import Callable, Iterator
 
-from aamm.std import breadth_first
+from aamm import std
 
 
 def current_directory(name_only: bool = False, stack_index: int = 0) -> str:
@@ -88,10 +88,23 @@ def here(filename: str, stack_index: int = 0) -> str:
     return os.path.join(current_directory(stack_index=stack_index + 1), filename)
 
 
-def search(root: str, condition: Callable = lambda _: True) -> Iterator[str]:
-    """From `root`, depth-first traverse directories according to `condition`."""
-    return breadth_first(
-        root, lambda node: directories(node) if condition(node) else ()
+def search(root: str, expand_condition: Callable = lambda _: True) -> Iterator[str]:
+    """
+    DESCRIPTION
+    -----------
+    From `root`, breadth-first traverse directories according to `expand_condition`.
+
+    PARAMETERS
+    ----------
+    expand_condition:
+        * A callable that receives a node (directory path) and returns a boolean.
+        * If `expand_condition(node) == True` the node's children are queued.
+        * Every queued node is yielded, even if `expand_condition(node) == False`.
+
+    """
+
+    return std.breadth_first(
+        root, lambda node: directories(node) if expand_condition(node) else ()
     )
 
 

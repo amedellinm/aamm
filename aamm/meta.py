@@ -115,5 +115,5 @@ class ReadOnlyProperty:
 
     def __set__(self, obj, value):
         if hasattr(obj, self.private_name):
-            raise AttributeError(f"Property '{self.display_name}' is read-only")
+            raise AttributeError(f"property '{self.display_name}' is read-only")
         setattr(obj, self.private_name, value)

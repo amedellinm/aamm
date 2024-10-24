@@ -2,13 +2,13 @@ from copy import deepcopy
 
 import numpy as np
 
-from aamm.meta import ReadOnlyProperty
+from aamm import meta
 
 
 class RNG(np.random.Generator):
     """`RNG` is an extension of `numpy.random.Generator`"""
 
-    seed = ReadOnlyProperty()
+    seed = meta.ReadOnlyProperty()
 
     def __init__(
         self,

@@ -18,14 +18,7 @@ def all_equal(iterable: Iterable) -> bool:
         first = next(iterator := iter(iterable))
     except StopIteration:
         return True
-    return all(first == rest for rest in iterator)
-
-
-def are_sequences_equal(*sequences: tuple[Sequence]) -> bool:
-    """Test equality between the nth element of all sequences, for all elements."""
-    if not all_equal(map(len, sequences)):
-        return False
-    return all(map(all_equal, zip(sequences)))
+    return all(first == other for other in iterator)
 
 
 def between(
@@ -175,6 +168,13 @@ def loop(iterable: Iterable, n: int | None = None) -> Generator:
 def qualname(obj: Any) -> str:
     """Returns the qualname of an object's type"""
     return type(obj).__qualname__
+
+
+def sequences_equal(*sequences: tuple[Sequence]) -> bool:
+    """Test equality between the nth element of all sequences, for all elements."""
+    if not all_equal(map(len, sequences)):
+        return False
+    return all(map(all_equal, zip(sequences)))
 
 
 def sign(number: Number, negative: Any = -1, zero: Any = 0, positive: Any = 1) -> Any:
