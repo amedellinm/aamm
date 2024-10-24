@@ -1,6 +1,5 @@
 from aamm.std import (
     all_equal,
-    are_sequences_equal,
     between,
     breadth_first,
     byte_length,
@@ -11,6 +10,7 @@ from aamm.std import (
     hinted_sort,
     index,
     loop,
+    sequences_equal,
     sign,
     skip_iter,
 )
@@ -25,10 +25,10 @@ class TestStd(TestSuite):
         asserts.false(all_equal({1, "1"}))
 
     def test_are_sequences_equal(self):
-        asserts.true(are_sequences_equal((1, 2, 3), (1, 2, 3), (1, 2, 3)))
-        asserts.true(are_sequences_equal((1, 2, 3), [1, 2, 3], (1, 2, 3)))
-        asserts.true(are_sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
-        asserts.true(are_sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
+        asserts.true(sequences_equal((1, 2, 3), (1, 2, 3), (1, 2, 3)))
+        asserts.true(sequences_equal((1, 2, 3), [1, 2, 3], (1, 2, 3)))
+        asserts.true(sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
+        asserts.true(sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
 
     def test_between(self):
         a, b = -4, 6
