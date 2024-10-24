@@ -6,24 +6,33 @@ from aamm.std import import_path
 
 
 def main():
-    for test_folder in fs.search():
-        # Filter out all folders not called "__tests".
-        if not test_folder.endswith("__tests"):
+    TEST_DIRECTORY_NAME = "__tests"
+    TEST_FILE_PREFIX = "test_"
+
+    def condition(directory: str) -> bool:
+        return os.path.basename(directory) != TEST_DIRECTORY_NAME
+
+    # Adding `condition` to `fs.search` makes sure test directories are not expanded,
+    # meaning, directories within test directories will never show up in the search.
+    for test_directory in fs.search(fs.current_directory(), condition):
+
+        # Filter out all directories not called `TEST_DIRECTORY_NAME`.
+        if condition(test_directory):
             continue
 
-        # Every subpackage has a "__tests" folder with test files matching the
-        # available modules of the subpackage. By going one directory up and then
-        # listing the files, we get the expected names of those test files.
-        folder = fs.dir_up(test_folder)
-        file_names = frozenset(fs.files(folder, names_only=True))
+        # Every subpackage has a `TEST_DIRECTORY_NAME` directory with test files
+        # matching the available modules of the subpackage. By going one directory up
+        # and then listing the files, we get the expected names of those test files.
+        filenames = frozenset(fs.files(fs.up(test_directory), names_only=True))
 
-        for test_file in fs.files(test_folder):
-            # Make sure "test_file" corresponds to one of the modules.
-            path_base = os.path.basename(test_file)
-            if path_base.startswith("test_") and path_base[5:] not in file_names:
-                continue
+        for test_file in fs.files(test_directory):
+            basename = os.path.basename(test_file)
+            filename = basename.removeprefix(TEST_FILE_PREFIX)
 
-            import_path(test_file)
+            # Make sure `test_file` is a test file and it corresponds to one of the
+            # modules in the current subpackage.
+            if basename.startswith(TEST_FILE_PREFIX) and filename in filenames:
+                import_path(test_file)
 
     testing.main()
 
