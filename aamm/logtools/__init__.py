@@ -29,9 +29,10 @@ class Logger:
         clear_file: bool = False,
         enabled: bool = True,
         log_level: int = 0,
+        path: str = None,
         separate: bool = True,
-        use_stdout: bool = True,
         stack_index: int = 0,
+        use_stdout: bool = True,
     ) -> None:
         self.buffer = io.StringIO()
         self.buffered_end = ""
@@ -40,14 +41,15 @@ class Logger:
         self.log_level = log_level
 
         # Construct path
-        stack_index += 1
-        directory = current_directory(stack_index=stack_index)
-        file_name = current_file("log", name_only=True, stack_index=stack_index)
+        if path is None:
+            stack_index += 1
+            directory = current_directory(stack_index=stack_index)
+            file_name = current_file("log", name_only=True, stack_index=stack_index)
 
-        path = os.path.join(
-            root or os.path.join(directory, self.FOLDER_NAME),
-            file or file_name,
-        )
+            path = os.path.join(
+                root or os.path.join(directory, self.FOLDER_NAME),
+                file or file_name,
+            )
 
         self.path = None if use_stdout else path
         self.separator_cache.setdefault(self.path, True)
@@ -55,8 +57,10 @@ class Logger:
         if use_stdout:
             self.path = None
             self.stream = sys.stdout
-            self.write(f"[LOGGER] Set `use_stdout = False` to write to:\n\t{path}")
-            self.separate()
+            with self.isolate(multiplier_exit=2, write_exit_end=True):
+                self.write(
+                    f"[LOGGER] Set `use_stdout = False` to write to:\n\t{path}",
+                )
         else:
             path_existed = os.path.exists(path)
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
@@ -70,15 +74,10 @@ class Logger:
         finalize(self, self._final_dispatch)
 
     def __repr__(self) -> str:
-        return fmt.reprlike(
-            self,
-            enabled=self.enabled,
-            log_level=self.log_level,
-            path=self.path and fmt.ellipse_path(self.path),
-        )
+        return f"{type(self).__qualname__}(path={self.path})"
 
     def _final_dispatch(self) -> None:
-        """Runs when `self` is destroyed. Does callbacks/clean-up"""
+        """Run all callbacks in `self.callbacks` upon destroying `self`."""
         try:
             for callback, args, kwargs in self.callbacks:
                 callback(*args, **kwargs)
@@ -88,8 +87,7 @@ class Logger:
 
     @contextmanager
     def capture_stderr(self):
-        with self.capture_stream(sys.stderr):
-            yield
+        return self.capture_stream(sys.stderr)
 
     @contextmanager
     def capture_stdout(self):
@@ -103,11 +101,10 @@ class Logger:
         finally:
             stream.write = write
 
-    def clear_file(self) -> Literal[True]:
-        """Clears the file the logger instance points to"""
-        if self.stream is not sys.stdout:
-            self.stream.seek(0)
-            self.stream.truncate(0)
+    def clear_stream(self) -> Literal[True]:
+        """Clear the stream the logger instance points to"""
+        self.stream.seek(0)
+        self.stream.truncate(0)
         return True
 
     def flush(self) -> Literal[True]:
@@ -117,18 +114,25 @@ class Logger:
         return True
 
     @contextmanager
-    def isolate(self, multiplier_enter: int = 1, multiplier_exit: int = 1):
+    def isolate(
+        self,
+        multiplier_enter: int = 1,
+        multiplier_exit: int = 1,
+        write_exit_end: bool = False,
+    ):
         """Runs the `separate` method before and after the context."""
         self.separate(multiplier_enter)
         yield
         self.separate(multiplier_exit)
+        if write_exit_end:
+            self.write(end="")
 
     def separate(self, multiplier: int = 2) -> Literal[True]:
         """Logs `multiplier * self.END`. Consecutive calls do nothing."""
         if self.separator_cache[self.path]:
             self.separator_cache[self.path] = False
             self.buffered_end = ""
-            self.write("", sep="", end=(multiplier + 1) * self.END)
+            self.write("", sep="", end=multiplier * self.END)
 
         return True
 
@@ -223,14 +227,16 @@ class Logger:
 
 class Timer(Logger):
     @contextmanager
-    def clock(self, tag: Any = None):
+    def clock(self, *args):
         """Times code within a `with` block."""
         time = -perf_counter()
         yield
-        self.write(self.clock_format(tag, time + perf_counter()))
+        with self.isolate():
+            self.write(self.clock_format(time + perf_counter(), *args))
 
-    def clock_format(self, tag: Any, time: float) -> str:
-        return f"{tag} | {time:.6f} s"
+    def clock_format(self, time: float, header) -> str:
+        time *= 1000
+        return fmt.tag_header_body("CLOCK", header, f"{time = :.3f} ms")
 
     def profile(self, function: Callable) -> Callable:
         """Logs the call count and spend time of the decorated function."""
@@ -286,3 +292,8 @@ class Timer(Logger):
         self, name: str, args: tuple, kwargs: dict[str, Any], ans: Any
     ) -> str:
         return f"[TRACKER]: {fmt.call(name, *args, **kwargs)} -> {ans!r}"
+
+
+logger = Logger()
+logger.write("Hi")
+print(logger)
