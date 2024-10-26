@@ -10,9 +10,8 @@ from types import EllipsisType
 from typing import Callable, Iterator
 
 import aamm.testing.formats as fmts
-from aamm.exceptions import qualname
-from aamm.file_system import current_file, dir_up
-from aamm.std import group_by, split_iter
+from aamm.file_system import current_file, up
+from aamm.std import group_by, qualname, split_iter
 from aamm.strings import TAB, indent
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
@@ -21,8 +20,8 @@ from aamm.strings import TAB, indent
 test_suites = []
 
 
-TestResults = namedtuple(
-    "TestResults",
+TestResult = namedtuple(
+    "TestResult",
     (
         "package_path",
         "test_path",
@@ -63,7 +62,7 @@ class TestSuite(metaclass=TestSuiteMeta):
         pass
 
     @classmethod
-    def run(cls) -> list[TestResults]:
+    def run(cls) -> list[TestResult]:
         tests = [
             (name, test)
             for name, test in vars(cls).items()
@@ -79,7 +78,7 @@ class TestSuite(metaclass=TestSuiteMeta):
         storage = []
 
         test_path = cls.home_path
-        package_path = dir_up(test_path)
+        package_path = up(test_path, 2)
         suite_name = cls.__qualname__
 
         cls.initialize()
@@ -97,7 +96,7 @@ class TestSuite(metaclass=TestSuiteMeta):
 
             except Exception as exception:
                 summary = traceback.extract_tb(exception.__traceback__)[1]
-                row = TestResults(
+                row = TestResult(
                     package_path=package_path,
                     test_path=test_path,
                     suite_name=suite_name,
@@ -110,7 +109,7 @@ class TestSuite(metaclass=TestSuiteMeta):
                 )
 
             else:
-                row = TestResults(
+                row = TestResult(
                     package_path=package_path,
                     test_path=test_path,
                     suite_name=suite_name,
@@ -138,13 +137,11 @@ test_suites.remove(TestSuite)
 
 
 def main(
-    stream: io.TextIOWrapper | EllipsisType | None = ...,
+    stream: io.TextIOWrapper | EllipsisType = ...,
     test_suites: list[TestSuite] = test_suites,
 ) -> None:
     if stream is Ellipsis:
         stream = sys.stdout
-    elif stream is None:
-        stream = io.StringIO()
 
     test_info = run_all(test_suites)
 
