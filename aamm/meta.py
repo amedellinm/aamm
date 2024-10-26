@@ -6,7 +6,7 @@ from functools import wraps
 from types import GenericAlias
 from typing import Callable, Literal
 
-from aamm.logtools.formats import attribute_error
+from aamm.exception_message import attribute_error
 
 
 @contextmanager
@@ -99,6 +99,19 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
         )
 
     return ConstantBooleanOperations()
+
+
+class NameSpace(type):
+    def __new__(cls, name, bases, dctn):
+        def init(self, *args, **kwargs):
+            raise RuntimeError(
+                f"namespace '{type(self).__qualname__}' is not instantiable"
+            )
+
+        dctn["__slots__"] = ()
+        dctn["__init__"] = init
+
+        return super().__new__(cls, name, bases, dctn)
 
 
 class ReadOnlyProperty:
