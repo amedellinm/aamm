@@ -1,12 +1,7 @@
-import importlib.util
-import os.path
-import sys
 from collections import defaultdict, deque
 from math import ceil
 from numbers import Number
 from operator import le, lt
-from pathlib import Path
-from types import ModuleType
 from typing import Any, Callable, Generator, Iterable, Iterator, Sequence
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
@@ -132,27 +127,12 @@ def hinted_sort(
     return sorted(sequence, key=hinted_key, reverse=reverse)
 
 
-def import_path(path: str | Path) -> ModuleType:
-    """Imports a Python module (.py) from a path"""
-    module_name, _ = os.path.splitext(os.path.basename(path))
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
 def index(sequence: Sequence, item: Any) -> int:
     """Get `item`'s index in `sequence` if it exists, else return `len(sequence)`."""
     for n, i in enumerate(sequence):
         if i == item:
             return n
     return n + 1
-
-
-def is_divisible(numerator: int, denominator: int) -> bool:
-    """Returns whether numerator is divisible by denominator.."""
-    return not (numerator % denominator)
 
 
 def loop(iterable: Iterable, n: int | None = None) -> Generator:
