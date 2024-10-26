@@ -10,9 +10,11 @@ from aamm.std import (
     hinted_sort,
     index,
     loop,
+    qualname,
     sequences_equal,
     sign,
     skip_iter,
+    split_iter,
 )
 from aamm.testing import TestSuite, asserts, main
 
@@ -134,6 +136,16 @@ class TestStd(TestSuite):
 
     def test_skip_iter(self):
         asserts.equal(tuple(skip_iter(range(10), 5)), tuple(range(5, 10)))
+
+    def test_split_iter(self):
+        numbers = range(1, 21)
+        odds = list(range(1, 21, 2))
+        evens = list(range(2, 21, 2))
+
+        true_group, false_group = split_iter(numbers, lambda number: number % 2)
+
+        asserts.equal(odds, true_group)
+        asserts.equal(evens, false_group)
 
 
 if __name__ == "__main__":
