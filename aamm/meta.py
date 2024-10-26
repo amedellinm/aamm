@@ -1,9 +1,12 @@
+import importlib.util
 import inspect
 import io
+import os.path
 import sys
 from contextlib import contextmanager
 from functools import wraps
-from types import GenericAlias
+from pathlib import Path
+from types import GenericAlias, ModuleType
 from typing import Callable, Literal
 
 from aamm.exception_message import attribute_error
@@ -17,6 +20,16 @@ def capture_stdout(stream: io.TextIOBase):
         yield stream
     finally:
         sys.stdout = stdout
+
+
+def import_path(path: str | Path) -> ModuleType:
+    """Imports a Python module (.py) from a path"""
+    module_name, _ = os.path.splitext(os.path.basename(path))
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
