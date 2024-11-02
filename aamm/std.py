@@ -85,7 +85,9 @@ def group_by(
 
     if isinstance(keys, int):
         keys = (keys,)
-    if values is None:
+    if isinstance(values, int):
+        values = (values,)
+    elif values is None:
         values = tuple(i for i in range(len(row)) if i not in keys)
 
     if len(keys) == 1:
