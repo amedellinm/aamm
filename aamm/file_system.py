@@ -5,6 +5,8 @@ from typing import Callable, Iterator
 
 from aamm import std
 
+SEP = os.path.sep
+
 
 def current_directory(name_only: bool = False, stack_index: int = 0) -> str:
     """Get the directory path of the source file of the caller."""
@@ -83,9 +85,19 @@ def has_extension(path: str, extension: str = None) -> bool:
     return bool(obtained) if expected is None else expected == obtained
 
 
+def head(path: str, n: int = 1):
+    """Return the first `n` segments of a path."""
+    return os.path.sep.join(path.split(os.path.sep)[:n])
+
+
 def here(filename: str, stack_index: int = 0) -> str:
     """Construct the path of a file in the current directory."""
     return os.path.join(current_directory(stack_index=stack_index + 1), filename)
+
+
+def relative(path: str):
+    """Return the relative version of `path`."""
+    return os.path.relpath(path)
 
 
 def search(root: str, expand_condition: Callable = lambda _: True) -> Iterator[str]:
@@ -106,6 +118,11 @@ def search(root: str, expand_condition: Callable = lambda _: True) -> Iterator[s
     return std.breadth_first(
         root, lambda node: directories(node) if expand_condition(node) else ()
     )
+
+
+def tail(path: str, n: int = 1):
+    """Return the last `n` segments of a path."""
+    return os.path.sep.join(path.split(os.path.sep)[-n:])
 
 
 def up(path: str, n: int = 1) -> str:
