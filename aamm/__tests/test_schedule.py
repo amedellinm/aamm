@@ -39,6 +39,9 @@ class TestSchedule(testing.TestSuite):
         asserts.equal(schedule.find_weekday(d3, d3.weekday(), -1), d1)
         asserts.equal(schedule.find_weekday(d3, d3.weekday(), -1, True), d3)
 
+        asserts.equal(schedule.find_weekday(d1, d1.weekday(), 2, True), d3)
+        asserts.equal(schedule.find_weekday(d3, d3.weekday(), -2, True), d1)
+
         asserts.raise_exception(ValueError, schedule.find_weekday, d1, d1.weekday(), 0)
 
 
