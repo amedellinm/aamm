@@ -1,6 +1,6 @@
 from collections.abc import Container
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Callable
 
 from aamm.std import between as std_between
 
@@ -55,6 +55,16 @@ def equal(a, b):
     _assertion(a == b, f"assert {a!r} == {b!r}")
 
 
+@contextmanager
+def exception_context(exception: Exception):
+    try:
+        yield
+    except exception:
+        return
+
+    _assertion(False, f"assert raise '{exception.__qualname__}'")
+
+
 def false(a):
     _assertion(not a, f"assert not bool({a!r})")
 
@@ -67,6 +77,10 @@ def greater_than(a, b):
     _assertion(a > b, f"assert {a!r} > {b!r}")
 
 
+def identical(a, b):
+    _assertion(a is b, f"assert {a!r} is {b!r}")
+
+
 def less_equal(a, b):
     _assertion(a <= b, f"assert {a!r} <= {b!r}")
 
@@ -75,9 +89,14 @@ def less_than(a, b):
     _assertion(a < b, f"assert {a!r} < {b!r}")
 
 
-def same(a, b):
-    _assertion(a is b, f"assert {a!r} is {b!r}")
+def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
+    try:
+        function(*args, **kwargs)
+    except exception:
+        return
+
+    _assertion(False, f"assert raise '{exception.__qualname__}'")
 
 
 def true(a):
-    _assertion(a, f"assert bool({a!r})")
+    _assertion(bool(a), f"assert bool({a!r})")
