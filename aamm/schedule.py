@@ -1,6 +1,7 @@
 from calendar import monthrange
 from datetime import date as Date
 from datetime import timedelta as TimeDelta
+from numbers import Number
 from typing import Iterator, Self
 
 from aamm.exception_message import index_error, operand_error, type_error
@@ -20,47 +21,15 @@ DATE0 = Date(2000, 1, 1)
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-def date_range(
-    start: Date,
-    end: Date | int | None = None,
-    step: int = 1,
-    include_last: bool = True,
-) -> Iterator[Date]:
-    """
-    DESCRIPTION
-    -----------
-    Generate a range of dates from `start` to `end` advancing `step` dates at a time.
+def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
+    """Generate dates from `start` to `end` advancing `step` dates at a time."""
+    difference = (end - start).days
+    range_sign = sign(difference, zero=1)
 
-    PARAMETERS
-    ----------
-    start:
-        * The starting date of the generated range.
-        * The first end is closed, therefore `start` is always included in the range.
+    difference += range_sign
+    delta = range_sign * abs(delta)
 
-    end:
-        * The limit of the range.
-        * If `end` is `int`, use `start` shifted `end` days.
-        * If `end` is `datetime.date`, use it directly.
-        * If `end` is `None`, use the value passed as `start`, and `start` defaults to
-          `datetime.date.today()`.
-
-    step:
-        * Number of days advanced each iteration.
-        * The sign of `step` is ignored and inferred from the range.
-
-    include_last:
-        * If `True`, turns the range from [start, end) to [start, end].
-        * This argument is only used if `end` is `datetime.date`, otherwise, the range
-          length is always `end`.
-
-    """
-
-    if end is None:
-        start, end = Date.today(), start
-    if isinstance(end, Date):
-        end = (end - start).days
-        end += include_last * sign(end, zero=1)
-    return (start + DAY * i for i in range(0, end, sign(end, zero=1) * abs(step)))
+    return (start + DAY * i for i in range(0, difference, delta))
 
 
 def find_weekday(
@@ -115,7 +84,9 @@ class YearMonth:
             return type(self)(self.value + other)
         raise TypeError(operand_error("+", self, other))
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Self | Number) -> bool:
+        if isinstance(other, Number):
+            return self.value == other
         return self.value == other.value
 
     def __ge__(self, other: Self) -> bool:
@@ -192,12 +163,13 @@ class YearMonth:
         """Return today's year."""
         return Date.today().year
 
-    def elapse(self, yearmonth: Self, step: int = 1) -> Iterator[Self]:
-        """Generate `YearMonth` objects going from `self` to `yearmonth`."""
-        length = yearmonth.value - self.value
-        s = sign(length)
-        length += s
-        return self.range(length, s * abs(step))
+    def elapse(self, end: Self, delta: int = 1) -> Iterator[Self]:
+        """Generate `YearMonth` objects going from `self` to `end`."""
+        difference = end.value - self.value
+        range_sign = sign(difference)
+        difference += range_sign
+        delta = range_sign * abs(delta)
+        return (self + i for i in range(0, difference, delta))
 
     @classmethod
     def from_date(cls, date: Date | None = None) -> Self:
@@ -221,10 +193,6 @@ class YearMonth:
     @property
     def month(self) -> int:
         return self.value % 12 + 1
-
-    def range(self, length: int, step: int = 1) -> Iterator[Self]:
-        """Generate `YearMonth` objects going from `self` to `self + length`."""
-        return (self + i for i in range(0, length, sign(length) * abs(step)))
 
     def raw_string(self) -> str:
         """Return a raw representation of `self` as a string in the format 'YYYYMM'."""
