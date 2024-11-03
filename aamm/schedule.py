@@ -21,15 +21,16 @@ DATE0 = Date(2000, 1, 1)
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
-    """Generate dates from `start` to `end` advancing `step` dates at a time."""
-    difference = (end - start).days
+def _elapse(difference: int, delta: int) -> range:
     range_sign = sign(difference, zero=1)
-
     difference += range_sign
     delta = range_sign * abs(delta)
+    return range(0, difference, delta)
 
-    return (start + DAY * i for i in range(0, difference, delta))
+
+def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
+    """Generate dates from `start` to `end` advancing `step` dates at a time."""
+    return (start + DAY * i for i in _elapse((end - start).days, delta))
 
 
 def find_weekday(
@@ -165,11 +166,7 @@ class YearMonth:
 
     def elapse(self, end: Self, delta: int = 1) -> Iterator[Self]:
         """Generate `YearMonth` objects going from `self` to `end`."""
-        difference = end.value - self.value
-        range_sign = sign(difference)
-        difference += range_sign
-        delta = range_sign * abs(delta)
-        return (self + i for i in range(0, difference, delta))
+        return (self + i for i in _elapse(end.value - self.value, delta))
 
     @classmethod
     def from_date(cls, date: Date | None = None) -> Self:

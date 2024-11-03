@@ -4,18 +4,22 @@ from aamm import schedule, testing
 from aamm.testing import asserts
 
 
+def test_elapse_generic(elapse, x1, x2, x3):
+    asserts.equal(tuple(elapse(x1, x3)), (x1, x2, x3))
+    asserts.equal(tuple(elapse(x3, x1)), (x3, x2, x1))
+
+    asserts.equal(tuple(elapse(x1, x3, 2)), (x1, x3))
+    asserts.equal(tuple(elapse(x3, x1, 2)), (x3, x1))
+    asserts.equal(tuple(elapse(x3, x1, -2)), (x3, x1))
+
+
 class TestSchedule(testing.TestSuite):
     def test_elapse(self):
         d1 = Date(2000, 1, 1)
         d2 = Date(2000, 1, 2)
         d3 = Date(2000, 1, 3)
 
-        asserts.equal(tuple(schedule.elapse(d1, d3)), (d1, d2, d3))
-        asserts.equal(tuple(schedule.elapse(d3, d1)), (d3, d2, d1))
-
-        asserts.equal(tuple(schedule.elapse(d1, d3, 2)), (d1, d3))
-        asserts.equal(tuple(schedule.elapse(d3, d1, 2)), (d3, d1))
-        asserts.equal(tuple(schedule.elapse(d3, d1, -2)), (d3, d1))
+        test_elapse_generic(schedule.elapse, d1, d2, d3)
 
     def test_find_weekday(self):
         d1 = Date(2000, 1, 1)
@@ -77,11 +81,7 @@ class TestYearMonth(testing.TestSuite):
         ym2 = schedule.YearMonth(2000, 2)
         ym3 = schedule.YearMonth(2000, 3)
 
-        asserts.equal(tuple(ym1.elapse(ym3)), (ym1, ym2, ym3))
-        asserts.equal(tuple(ym3.elapse(ym1)), (ym3, ym2, ym1))
-        asserts.equal(tuple(ym1.elapse(ym3, 2)), (ym1, ym3))
-        asserts.equal(tuple(ym3.elapse(ym1, 2)), (ym3, ym1))
-        asserts.equal(tuple(ym3.elapse(ym1, -2)), (ym3, ym1))
+        test_elapse_generic(schedule.YearMonth.elapse, ym1, ym2, ym3)
 
     def test_immutability(self):
         ym1 = schedule.YearMonth(2000, 1)
