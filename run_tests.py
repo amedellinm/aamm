@@ -2,7 +2,7 @@ import os
 
 import aamm.file_system as fs
 from aamm import testing
-from aamm.std import import_path
+from aamm.meta import import_path
 
 
 def main():
