@@ -106,10 +106,13 @@ class TestYearMonth(testing.TestSuite):
         asserts.true(hash(ym1) == hash(24000.0 + 0j))
 
     def test_iter(self):
-        asserts.equal(
-            tuple(schedule.YearMonth(2000, 1)),
-            tuple(schedule.elapse(Date(2000, 1, 1), Date(2000, 1, 31))),
-        )
+        ym = schedule.YearMonth(2000, 1)
+        d1 = Date(2000, 1, 1)
+        d2 = Date(2000, 1, 31)
+
+        asserts.equal(tuple(ym), tuple(schedule.elapse(d1, d2)))
+        asserts.equal(ym[0], d1)
+        asserts.equal(ym[-1], d2)
 
     def test_month_wrapping(self):
         ym1 = schedule.YearMonth(2000, 1) - 1
