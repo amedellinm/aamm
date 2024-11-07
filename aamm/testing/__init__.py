@@ -6,13 +6,14 @@ from random import shuffle
 from typing import Callable, Iterator
 
 from aamm import file_system as fs
-from aamm.std import qualname
+from aamm import std
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-test_suites = []
+TEST_PREFIX = "test_"
 
+test_suites = []
 
 TestResult = namedtuple(
     "TestResult",
@@ -106,7 +107,7 @@ class TestSuite(metaclass=TestSuiteMeta):
                 summary = stack[len(stack) != 1]
                 variable_data[2:] = (
                     f"{summary.lineno}:{summary.colno}",
-                    qualname(exception),
+                    std.qualname(exception),
                     str(exception),
                 )
 
@@ -130,8 +131,12 @@ test_suites.remove(TestSuite)
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-def main(test_suites: list[TestSuite] = test_suites) -> Iterator[TestResult]:
+def run_all(test_suites: list[TestSuite] = test_suites) -> Iterator[TestResult]:
     return chain.from_iterable(test_suite.run() for test_suite in test_suites)
+
+
+def main():
+    """TODO"""
 
 
 def skip(test: Callable):
