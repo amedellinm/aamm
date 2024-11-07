@@ -104,10 +104,14 @@ def search(root: str, expand_condition: Callable = lambda _: True) -> Iterator[s
     """
     DESCRIPTION
     -----------
-    From `root`, breadth-first traverse directories according to `expand_condition`.
+    From `root`, depth-first traverse directories according to `expand_condition`.
 
     PARAMETERS
     ----------
+    root:
+        * The directory where the search starts.
+        * It is the first path to be yielded.
+
     expand_condition:
         * A callable that receives a node (directory path) and returns a boolean.
         * If `expand_condition(node) == True` the node's children are queued.
@@ -115,7 +119,7 @@ def search(root: str, expand_condition: Callable = lambda _: True) -> Iterator[s
 
     """
 
-    return std.breadth_first(
+    return std.depth_first(
         root, lambda node: directories(node) if expand_condition(node) else ()
     )
 
