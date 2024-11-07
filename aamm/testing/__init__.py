@@ -1,8 +1,11 @@
+import io
+import sys
 import time
 import traceback
 from collections import namedtuple
 from itertools import chain
 from random import shuffle
+from types import EllipsisType
 from typing import Callable, Iterator
 
 from aamm import file_system as fs
@@ -135,8 +138,45 @@ def run_all(test_suites: list[TestSuite] = test_suites) -> Iterator[TestResult]:
     return chain.from_iterable(test_suite.run() for test_suite in test_suites)
 
 
-def main():
-    """TODO"""
+def main(
+    stream: io.TextIOWrapper | EllipsisType = Ellipsis,
+    test_suites: list[TestSuite] = test_suites,
+) -> None:
+    """Run all tests and summarize the results."""
+
+    def summary_line(test_results: list[TestResult]) -> str:
+        test_files = len({tr.test_path for tr in test_results})
+        total_tests = len(test_results)
+        successful_tests = sum(tr.test_duration is not None for tr in test_results)
+        total_duration = sum(tr.test_duration or 0.0 for tr in test_results) * 1000
+
+        summary_line = (
+            f"Ran {successful_tests} / {total_tests} "
+            f"successful test{"s"* (total_tests>1)} in {total_duration:.3f} ms "
+            f"across {test_files} file{"s"* (test_files>1)}."
+        )
+
+        sep = len(summary_line) * "-"
+
+        return f"{sep}\n" + summary_line + f"\n{sep}"
+
+    def failed_test(test_result: TestResult) -> str:
+        tr = test_result
+        return (
+            f"{tr.suite_name}.{tr.test_name}"
+            f"\n\t{tr.test_path}:{tr.where}"
+            f"\n\t{tr.error_name}: {tr.error_message}"
+        )
+
+    if stream is Ellipsis:
+        stream = sys.stdout
+
+    test_results = sorted(run_all(test_suites))
+
+    stream.write(summary_line(test_results) + "\n")
+    stream.write(
+        "\n\n".join(failed_test(tr) for tr in test_results if tr.test_duration is None)
+    )
 
 
 def skip(test: Callable):
