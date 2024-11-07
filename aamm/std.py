@@ -26,7 +26,7 @@ def between(
 
 
 def breadth_first(root: Any, expand: Callable) -> Generator:
-    """Traverses a graph from a root node using depth-first.."""
+    """Traverses a graph from a root node using breadth-first.."""
     queue = deque([root])
     while queue:
         yield (node := queue.popleft())
