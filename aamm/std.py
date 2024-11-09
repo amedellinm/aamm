@@ -17,12 +17,12 @@ def all_equal(iterable: Iterable) -> bool:
 
 
 def between(
-    value, left, right, include_left: bool = True, include_right: bool = True
+    value, lower, upper, include_lower: bool = True, include_upper: bool = True
 ) -> bool:
-    """Check `value` is between `left` and `right`."""
-    l = le if include_left else lt
-    r = le if include_right else lt
-    return l(left, value) and r(value, right)
+    """Check `value` is between `lower` and `upper`."""
+    l = le if include_lower else lt
+    r = le if include_upper else lt
+    return l(lower, value) and r(value, upper)
 
 
 def breadth_first(root: Any, expand: Callable) -> Generator:
