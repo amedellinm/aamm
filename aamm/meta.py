@@ -1,7 +1,7 @@
 import importlib.util
 import inspect
 import io
-import os.path
+import os
 import sys
 from contextlib import contextmanager
 from functools import wraps
@@ -115,6 +115,8 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
 
 
 class NameSpace(type):
+    """Empty, non-instantiable metaclass"""
+
     def __new__(cls, name, bases, dctn):
         def init(self, *args, **kwargs):
             raise RuntimeError(
