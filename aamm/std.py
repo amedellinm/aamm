@@ -154,9 +154,7 @@ def qualname(obj: Any) -> str:
 
 def sequences_equal(*sequences: tuple[Sequence]) -> bool:
     """Test equality between the nth element of all sequences, for all elements."""
-    if not all_equal(map(len, sequences)):
-        return False
-    return all(map(all_equal, zip(sequences)))
+    return all_equal(map(len, sequences)) and all(map(all_equal, zip(sequences)))
 
 
 def sign(number: Number, negative: Any = -1, zero: Any = 0, positive: Any = 1) -> Any:
