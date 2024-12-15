@@ -90,9 +90,11 @@ def head(path: str, n: int = 1):
     return os.path.sep.join(path.split(os.path.sep)[:n])
 
 
-def here(filename: str, stack_index: int = 0) -> str:
-    """Construct the path of a file in the current directory."""
-    return os.path.join(current_directory(stack_index=stack_index + 1), filename)
+def here(*path_segments: str, stack_index: int = 0) -> str:
+    """Construct a path in the current directory."""
+    return os.path.join(
+        current_directory(stack_index=stack_index + 1), SEP.join(path_segments)
+    )
 
 
 def relative(path: str):
