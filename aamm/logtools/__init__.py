@@ -1,14 +1,38 @@
 import io
+import os
+import sys
 from contextlib import contextmanager
-from types import EllipsisType
-from typing import Any, Self, TextIO
+from typing import Any, Literal, Self, TextIO
 from weakref import finalize
 
-import aamm.logtools.formats as fmt
+import aamm.file_system as fs
+import aamm.logtools.formats as fmts
 from aamm.meta import ReadOnlyProperty
 
 
 class Logger:
+    """
+    DESCRIPTION
+    -----------
+    This is the Main method of the class. It provides a `print`-like interface for
+    logging.
+
+    PARAMETERS
+    ----------
+    stream:
+        * Stream to write to.
+
+    enabled:
+        * If `False`, logging is suppressed.
+
+    unmanaged:
+        * If `True`, the caller manages `stream`.
+        * Read only.
+
+    """
+
+    DIR_NAME = "__logs"
+
     sep = " "
     end = "\n"
     sep_registry = {}
@@ -16,31 +40,20 @@ class Logger:
     unmanaged = ReadOnlyProperty()
 
     def __init__(
-        self,
-        stream: TextIO | EllipsisType,
-        enabled: bool = True,
-        unmanaged: bool = False,
+        self, stream: TextIO, enabled: bool = True, unmanaged: bool = False
     ) -> None:
         self.stream = stream
         self.enabled = enabled
         self.unmanaged = unmanaged
 
-        self.callbacks = []
         self.buffer = io.StringIO()
         self.sep_registry.setdefault(stream, True)
 
         if not unmanaged:
             finalize(self, self.stream.close)
 
-        finalize(self, self._final_dispatch)
-
     def __repr__(self) -> str:
-        return fmt.reprlike(self, "stream", "enabled", "unmanaged")
-
-    def _final_dispatch(self) -> None:
-        """Run all callbacks in `self.callbacks` upon instance destruction."""
-        for callback, args, kwargs in self.callbacks:
-            callback(*args, **kwargs)
+        return fmts.reprlike(self, "stream", "enabled", "unmanaged")
 
     def clear_buffer(self) -> Self:
         """Clear buffer."""
@@ -55,9 +68,37 @@ class Logger:
         return self
 
     def flush(self) -> Self:
-        """Dump `self.buffer` to `self.stream`."""
-        self.stream.write(self.buffer.getvalue())
-        return self.clear_buffer()
+        """Dump `self.buffer` to `self.stream` though `self.write`."""
+        return self.write(end="", flush=True)
+
+    @classmethod
+    def from_current_file(cls, stack_index=0) -> Self:
+        """
+        Construct a `Logger` instance using a stream that points to the file defined
+        by joining the path segments:
+            * The directory where the caller's source file lives
+            * A folder named `cls.DIR_NAME`
+            * A .log file of the same name as the caller's source file
+
+        """
+        stack_index += 1
+        path = fs.here(
+            cls.DIR_NAME,
+            fs.current_file("log", True, stack_index=stack_index),
+            stack_index=stack_index,
+        )
+
+        os.makedirs(fs.up(path), exist_ok=True)
+        return cls(open(path, "a"))
+
+    @classmethod
+    def from_sys_stream(
+        cls, stream_name: Literal["stdout", "stderr"] = "stdout"
+    ) -> Self:
+        """Construct a `Logger` instance using a stream from the `sys` module."""
+        if stream_name in ("stdout", "stderr"):
+            return cls(getattr(sys, stream_name), unmanaged=True)
+        raise ValueError(f"expected 'stdout' or 'stderr', got {stream_name!r}")
 
     @contextmanager
     def isolate(self, multiplier_enter: int = 2, multiplier_exit: int = 2):
@@ -69,7 +110,7 @@ class Logger:
     def separate(self, multiplier: int = 2) -> Self:
         """Log `multiplier * self.end` idempotently."""
         if self.sep_registry[self.stream]:
-            self.write("", sep="", end=multiplier * self.end)
+            self.write(end=multiplier * self.end, flush=False)
             self.sep_registry[self.stream] = False
 
         return self
@@ -99,6 +140,9 @@ class Logger:
 
         PARAMETERS
         ----------
+        values:
+            * Same as for `print`.
+
         end:
             * String appended at the end of the constructed message.
             * Uses `self.end` if `None`.
@@ -112,6 +156,9 @@ class Logger:
             * If `True` uses `repr`.
             * If `False` uses `str`.
 
+        flush:
+            * If `True`, call `self.flush` after writing.
+
         RETURNS
         -------
         Self:
@@ -124,9 +171,10 @@ class Logger:
             end = self.end if end is None else end
             sep = self.sep if sep is None else sep
             msg = sep.join(map(repr if use_repr else str, values)) + end
-            self.buffer.write(msg)
 
+            self.buffer.write(msg)
             if flush:
-                self.flush()
+                self.stream.write(self.buffer.getvalue())
+                self.clear_buffer()
 
         return self
