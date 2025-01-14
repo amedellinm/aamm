@@ -1,5 +1,3 @@
-# Ignore
 __logs
 __pycache__
-.git
 aamm.egg-info

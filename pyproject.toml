@@ -10,5 +10,9 @@ version = "0.2.0"
 [tool.hatch.build]
 exclude = ["**/__*/**"]
 
+[tool.hatch.build.targets.sdist]
+# Ignore .gitignore when excluding/including files
+ignore-vcs = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["aamm"]
