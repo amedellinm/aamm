@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 authors = [{ name = "Antonio A. Medellín", email = "amedellinm@outlook.com" }]
 name = "aamm"
-version = "0.2.0"
+version = "0.10.0"
 
 [tool.hatch.build]
 exclude = ["**/__*/**"]

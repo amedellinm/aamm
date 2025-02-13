@@ -1,6 +1,6 @@
 from datetime import date as Date
 
-from aamm import schedule, testing
+from aamm import calendar, testing
 from aamm.testing import asserts
 
 
@@ -19,37 +19,41 @@ class TestSchedule(testing.TestSuite):
         d2 = Date(2000, 1, 2)
         d3 = Date(2000, 1, 3)
 
-        test_elapse_generic(schedule.elapse, d1, d2, d3)
+        test_elapse_generic(calendar.elapse, d1, d2, d3)
 
     def test_find_weekday(self):
         d1 = Date(2000, 1, 1)
         d2 = Date(2000, 1, 2)
         d3 = Date(2000, 1, 8)
 
-        asserts.equal(schedule.find_weekday(d1, d1.weekday()), d3)
+        asserts.equal(calendar.find_weekday(d1, d1.weekday()), d3)
+        asserts.equal(
+            calendar.find_weekday(d1, d1.weekday(), +1, True),
+            calendar.find_weekday(d1, d1.weekday(), -1, True),
+        )
 
-        asserts.equal(schedule.find_weekday(d1, d2.weekday()), d2)
-        asserts.equal(schedule.find_weekday(d1, d2.weekday(), 1, True), d2)
+        asserts.equal(calendar.find_weekday(d1, d2.weekday()), d2)
+        asserts.equal(calendar.find_weekday(d1, d2.weekday(), 1, True), d2)
 
-        asserts.equal(schedule.find_weekday(d2, d1.weekday()), d3)
-        asserts.equal(schedule.find_weekday(d2, d1.weekday(), -1), d1)
-        asserts.equal(schedule.find_weekday(d2, d1.weekday(), -1, True), d1)
+        asserts.equal(calendar.find_weekday(d2, d1.weekday()), d3)
+        asserts.equal(calendar.find_weekday(d2, d1.weekday(), -1), d1)
+        asserts.equal(calendar.find_weekday(d2, d1.weekday(), -1, True), d1)
 
-        asserts.equal(schedule.find_weekday(d1, d1.weekday(), 1, True), d1)
-        asserts.equal(schedule.find_weekday(d3, d3.weekday(), -1), d1)
-        asserts.equal(schedule.find_weekday(d3, d3.weekday(), -1, True), d3)
+        asserts.equal(calendar.find_weekday(d1, d1.weekday(), 1, True), d1)
+        asserts.equal(calendar.find_weekday(d3, d3.weekday(), -1), d1)
+        asserts.equal(calendar.find_weekday(d3, d3.weekday(), -1, True), d3)
 
-        asserts.equal(schedule.find_weekday(d1, d1.weekday(), 2, True), d3)
-        asserts.equal(schedule.find_weekday(d3, d3.weekday(), -2, True), d1)
+        asserts.equal(calendar.find_weekday(d1, d1.weekday(), 2, True), d3)
+        asserts.equal(calendar.find_weekday(d3, d3.weekday(), -2, True), d1)
 
-        asserts.raise_exception(ValueError, schedule.find_weekday, d1, d1.weekday(), 0)
+        asserts.raise_exception(ValueError, calendar.find_weekday, d1, d1.weekday(), 0)
 
 
 class TestYearMonth(testing.TestSuite):
     def test_arithmetic(self):
-        ym1 = schedule.YearMonth(2000, 1)
-        ym2 = schedule.YearMonth(2000, 2)
-        ym3 = schedule.YearMonth(2000, 3)
+        ym1 = calendar.YearMonth(2000, 1)
+        ym2 = calendar.YearMonth(2000, 2)
+        ym3 = calendar.YearMonth(2000, 3)
 
         asserts.equal(ym1 + 1, ym2)
         asserts.equal(ym1 + 2, ym3)
@@ -61,7 +65,7 @@ class TestYearMonth(testing.TestSuite):
         asserts.equal(ym3 - ym1, +2)
 
     def test_construction(self):
-        YearMonth = schedule.YearMonth
+        YearMonth = calendar.YearMonth
 
         YM = YearMonth(2000, 1)
 
@@ -80,16 +84,16 @@ class TestYearMonth(testing.TestSuite):
         asserts.raise_exception(ValueError, YearMonth.from_string, "40012")
 
     def test_elapse(self):
-        ym1 = schedule.YearMonth(2000, 1)
-        ym2 = schedule.YearMonth(2000, 2)
-        ym3 = schedule.YearMonth(2000, 3)
+        ym1 = calendar.YearMonth(2000, 1)
+        ym2 = calendar.YearMonth(2000, 2)
+        ym3 = calendar.YearMonth(2000, 3)
 
-        test_elapse_generic(schedule.YearMonth.elapse, ym1, ym2, ym3)
+        test_elapse_generic(calendar.YearMonth.elapse, ym1, ym2, ym3)
 
     def test_immutability(self):
-        ym1 = schedule.YearMonth(2000, 1)
-        ym2 = schedule.YearMonth(2000, 1)
-        ym3 = schedule.YearMonth(2000, 2)
+        ym1 = calendar.YearMonth(2000, 1)
+        ym2 = calendar.YearMonth(2000, 1)
+        ym3 = calendar.YearMonth(2000, 2)
 
         with asserts.exception_context(AttributeError):
             ym1.value = 10
@@ -109,17 +113,17 @@ class TestYearMonth(testing.TestSuite):
         asserts.true(hash(ym1) == hash(24000.0 + 0j))
 
     def test_iter(self):
-        ym = schedule.YearMonth(2000, 1)
+        ym = calendar.YearMonth(2000, 1)
         d1 = Date(2000, 1, 1)
         d2 = Date(2000, 1, 31)
 
-        asserts.equal(tuple(ym), tuple(schedule.elapse(d1, d2)))
+        asserts.equal(tuple(ym), tuple(calendar.elapse(d1, d2)))
         asserts.equal(ym[0], d1)
         asserts.equal(ym[-1], d2)
 
     def test_month_wrapping(self):
-        ym1 = schedule.YearMonth(2000, 1) - 1
-        ym2 = schedule.YearMonth(2000, 12) + 1
+        ym1 = calendar.YearMonth(2000, 1) - 1
+        ym2 = calendar.YearMonth(2000, 12) + 1
 
         asserts.equal(ym1.year, 1999)
         asserts.equal(ym1.month, 12)
@@ -129,7 +133,3 @@ class TestYearMonth(testing.TestSuite):
 
         asserts.equal(ym1.month, (ym1 + 12).month)
         asserts.equal(ym1.year + 1, (ym1 + 12).year)
-
-
-if __name__ == "__main__":
-    testing.main()

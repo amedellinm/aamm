@@ -5,17 +5,17 @@ from contextlib import contextmanager
 from typing import Any, Literal, Self, TextIO
 from weakref import finalize
 
-import aamm.file_system as fs
-import aamm.logtools.formats as fmts
-from aamm.meta import ReadOnlyProperty
+import aamm.logging.formats as fmts
+from aamm import file_system as fs
+from aamm import meta
+from aamm.strings import right_replace
 
 
 class Logger:
     """
     DESCRIPTION
     -----------
-    This is the Main method of the class. It provides a `print`-like interface for
-    logging.
+    A logger is essentially just an IO stream.
 
     PARAMETERS
     ----------
@@ -33,11 +33,13 @@ class Logger:
 
     DIR_NAME = "__logs"
 
-    sep = " "
-    end = "\n"
+    SEP = " "
+    END = "\n"
+    USE_REPR = False
+    FLUSH = True
     sep_registry = {}
 
-    unmanaged = ReadOnlyProperty()
+    unmanaged = meta.ReadOnlyProperty()
 
     def __init__(
         self, stream: TextIO, enabled: bool = True, unmanaged: bool = False
@@ -74,21 +76,17 @@ class Logger:
     @classmethod
     def from_current_file(cls, stack_index=0) -> Self:
         """
-        Construct a `Logger` instance using a stream that points to the file defined
+        Construct a `cls` instance using a stream that points to the file defined
         by joining the path segments:
             * The directory where the caller's source file lives
             * A folder named `cls.DIR_NAME`
             * A .log file of the same name as the caller's source file
 
         """
-        stack_index += 1
-        path = fs.here(
-            cls.DIR_NAME,
-            fs.current_file("log", True, stack_index=stack_index),
-            stack_index=stack_index,
-        )
-
-        os.makedirs(fs.up(path), exist_ok=True)
+        path = fs.with_extension(fs.current_file(stack_index + 1), "log")
+        leaf = fs.leaf(path)
+        path = right_replace(path, leaf, cls.DIR_NAME + fs.SEP + leaf)
+        os.makedirs(fs.directory(path), exist_ok=True)
         return cls(open(path, "a"))
 
     @classmethod
@@ -129,13 +127,13 @@ class Logger:
         *values: tuple[Any],
         end: str = None,
         sep: str = None,
-        use_repr: bool = False,
-        flush: int = True,
+        use_repr: bool = None,
+        flush: int = None,
     ) -> Self:
         """
         DESCRIPTION
         -----------
-        This is the Main method of the class. It provides a `print`-like interface for
+        This is the main method of the class. It provides a `print`-like interface for
         logging.
 
         PARAMETERS
@@ -167,13 +165,16 @@ class Logger:
         """
 
         if self.enabled:
-            self.sep_registry[self.stream] = True
-            end = self.end if end is None else end
-            sep = self.sep if sep is None else sep
-            msg = sep.join(map(repr if use_repr else str, values)) + end
+            end = self.END if end is None else end
+            sep = self.SEP if sep is None else sep
+            use_repr = self.FLUSH if use_repr is None else use_repr
+            flush = self.FLUSH if flush is None else flush
 
+            self.sep_registry[self.stream] = True
+            msg = sep.join(map(repr if use_repr else str, values)) + end
             self.buffer.write(msg)
-            if flush:
+
+            if self.FLUSH if flush is None else flush:
                 self.stream.write(self.buffer.getvalue())
                 self.clear_buffer()
 

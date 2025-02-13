@@ -1,28 +1,22 @@
+from calendar import isleap as is_leap
 from calendar import monthrange
+from collections.abc import Iterator
 from datetime import date as Date
+from datetime import datetime as DateTime
 from datetime import timedelta as TimeDelta
 from numbers import Number
-from typing import Iterator, Self
+from typing import Self
 
-from aamm.exception_message import index_error, operand_error, type_error
+from aamm import exception_message as em
 from aamm.meta import ReadOnlyProperty
-from aamm.std import qualname, sign
-from aamm.strings import pattern_match
-
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
+from aamm.strings import create_matcher
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(weeks=1)
 
-ZERO_DATE = Date(2000, 1, 1)
-
-
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
 
 def _elapse(difference: int, delta: int) -> range:
-    range_sign = sign(difference, zero=1)
+    range_sign = -1 if difference < 0 else 1
     difference += range_sign
     delta = range_sign * abs(delta)
     return range(0, difference, delta)
@@ -55,7 +49,7 @@ def find_weekday(
         * Can be positive or negative but not 0.
 
     include_start:
-        * If `True`, `start_date` counts for the indexing of the returned date.
+        * If `True`, `start_date` counts towards the indexing of the returned date.
 
     """
 
@@ -63,21 +57,18 @@ def find_weekday(
         raise ValueError("argument `index` can not be 0")
 
     shift = weekday - start_date.weekday()
-    index_sign = sign(index)
-    shift_sign = sign(shift)
+    index_sign = -1 if index < 0 else 1
+    shift_sign = shift and (-1 if shift < 0 else 1)
     index -= (shift_sign == 0 and include_start) * index_sign
     shift += (shift_sign != index_sign) * 7 * index
 
     return start_date + DAY * shift
 
 
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
-
 class YearMonth:
     """Date-like object, holds a pair year-month."""
 
-    is_yearmonth_string = pattern_match.create_matcher(r"^\d{4}(0[1-9]|1[0-2])$")
+    is_yearmonth_string = create_matcher(r"^\d{4}(0[1-9]|1[0-2])$")
     value = ReadOnlyProperty()
 
     def __add__(self, other: int) -> Self:
@@ -101,7 +92,7 @@ class YearMonth:
 
         if isinstance(subscript, int):
             if not (-max_index <= subscript < max_index):
-                raise IndexError(index_error(self, subscript))
+                raise IndexError(em.index_error(self, subscript))
             subscript += (subscript < 0) * max_index
             return Date(self.year, self.month, subscript + 1)
 
@@ -144,7 +135,7 @@ class YearMonth:
         return self.value != other.value
 
     def __repr__(self) -> str:
-        return f"{qualname(self)}({self.year}, {self.month})"
+        return f"{type(self).__qualname__}({self.year}, {self.month})"
 
     def __str__(self) -> str:
         return f"{self.year:>04}-{self.month:>02}"
@@ -154,7 +145,7 @@ class YearMonth:
             return self.value - other.value
         elif isinstance(other, int):
             return cls(self.value - other)
-        raise TypeError(operand_error("-", self, other))
+        raise TypeError(em.operand_error("-", self, other))
 
     def current_month() -> int:
         """Return today's month."""

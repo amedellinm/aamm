@@ -1,13 +1,6 @@
 from itertools import chain
 
 
-def content_table_row(
-    left: str, right: str, filler: str = ".", line_length: int = 88
-) -> str:
-    middle = " " + (line_length - 2 - len(left) - len(right)) * filler + " "
-    return left + middle + right
-
-
 def function_call(function_name: str, *args, **kwargs) -> str:
     """Generate a string resembling a function call."""
     params = ", ".join(

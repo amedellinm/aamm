@@ -1,6 +1,6 @@
-from aamm.std import (
+from aamm._.testing import TestSuite, asserts, main
+from aamm._.utils import (
     all_equal,
-    between,
     breadth_first,
     byte_length,
     cap_iter,
@@ -10,12 +10,10 @@ from aamm.std import (
     hinted_sort,
     index,
     loop,
-    sequences_equal,
     sign,
     skip_iter,
     split_iter,
 )
-from aamm.testing import TestSuite, asserts, main
 
 
 class TestStd(TestSuite):
@@ -25,29 +23,29 @@ class TestStd(TestSuite):
         asserts.true(all_equal([1, 1]))
         asserts.false(all_equal({1, "1"}))
 
-    def test_are_sequences_equal(self):
-        asserts.true(sequences_equal((1, 2, 3), (1, 2, 3), (1, 2, 3)))
-        asserts.true(sequences_equal((1, 2, 3), [1, 2, 3], (1, 2, 3)))
-        asserts.true(sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
-        asserts.true(sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
+    # def test_are_sequences_equal(self):
+    #     asserts.true(sequences_equal((1, 2, 3), (1, 2, 3), (1, 2, 3)))
+    #     asserts.true(sequences_equal((1, 2, 3), [1, 2, 3], (1, 2, 3)))
+    #     asserts.true(sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
+    #     asserts.true(sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
 
-    def test_between(self):
-        a, b = -4, 6
+    # def test_between(self):
+    #     a, b = -4, 6
 
-        asserts.false(between(-4, a, b, 0, 0))
-        asserts.false(between(-4, a, b, 0, 1))
-        asserts.true(between(-4, a, b, 1, 0))
-        asserts.true(between(-4, a, b, 1, 1))
+    #     asserts.false(between(-4, a, b, 0, 0))
+    #     asserts.false(between(-4, a, b, 0, 1))
+    #     asserts.true(between(-4, a, b, 1, 0))
+    #     asserts.true(between(-4, a, b, 1, 1))
 
-        asserts.true(between(5, a, b, 0, 0))
-        asserts.true(between(5, a, b, 0, 1))
-        asserts.true(between(5, a, b, 1, 0))
-        asserts.true(between(5, a, b, 1, 1))
+    #     asserts.true(between(5, a, b, 0, 0))
+    #     asserts.true(between(5, a, b, 0, 1))
+    #     asserts.true(between(5, a, b, 1, 0))
+    #     asserts.true(between(5, a, b, 1, 1))
 
-        asserts.false(between(6, a, b, 0, 0))
-        asserts.true(between(6, a, b, 0, 1))
-        asserts.false(between(6, a, b, 1, 0))
-        asserts.true(between(6, a, b, 1, 1))
+    #     asserts.false(between(6, a, b, 0, 0))
+    #     asserts.true(between(6, a, b, 0, 1))
+    #     asserts.false(between(6, a, b, 1, 0))
+    #     asserts.true(between(6, a, b, 1, 1))
 
     def test_breadth_first(self):
         def expand(node):
