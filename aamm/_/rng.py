@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Any
 
 import numpy as np
 
@@ -25,13 +26,15 @@ class RNG(np.random.Generator):
         """Return the result of Bernoulli trials as `bool`s."""
         return self.random(size) < p
 
-    def get_state(self) -> dict:
+    def get_state(self) -> dict[str, Any]:
         """Get the rng state."""
         return deepcopy(self.bit_generator.state)
 
-    def set_state(self, state: dict) -> None:
+    def set_state(self, state: dict[str, Any]) -> None:
         """Set the rng state."""
         self.bit_generator.state = state
 
 
-ZERO_STATE = RNG(0).get_state()
+def create_state(seed: int | None) -> dict[str, Any]:
+    """Create a state suitable for `RNG.set_state`."""
+    return RNG(seed).get_state()

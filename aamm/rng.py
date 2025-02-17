@@ -1,1 +1,1 @@
-from aamm._.rng import RNG, ZERO_STATE
+from aamm._.rng import RNG, create_state
