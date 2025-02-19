@@ -19,9 +19,9 @@ def current_directory(stack_index: int = 0) -> str:
     return directory(current_file(stack_index=stack_index + 1))
 
 
-def current_file(stack_index: int = 0) -> str | None:
+def current_file(stack_index: int = 0) -> str:
     """Get the path of the source file of the caller."""
-    return inspect.stack()[stack_index + 1].frame.f_globals.get("__file__")
+    return inspect.stack()[stack_index + 1].frame.f_globals["__file__"]
 
 
 def cwd() -> str:
