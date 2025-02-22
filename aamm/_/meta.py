@@ -114,15 +114,24 @@ class NameSpace(type):
     """Empty, non-instantiable metaclass"""
 
     def __new__(cls, name, bases, dctn):
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError(
-                f"namespace '{type(self).__qualname__}' is not instantiable"
-            )
+        if bases:
+            raise ValueError("`NameSpace` does not support inheritance")
 
-        dctn["__slots__"] = ()
-        dctn["__init__"] = __init__
+        name_space = super().__new__(cls, name, (), dctn)
+        members = {
+            key: val
+            for key, val in vars(name_space).items()
+            if not key.startswith("_")
+        }
 
-        return super().__new__(cls, name, bases, dctn)
+        class Instance:
+            __slots__ = tuple(members)
+
+        instance = Instance()
+        for item in members.items():
+            setattr(instance, *item)
+
+        return instance
 
 
 class ReadOnlyProperty:
