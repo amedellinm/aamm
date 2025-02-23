@@ -5,7 +5,7 @@ import sys
 from contextlib import contextmanager
 from functools import wraps
 from types import GenericAlias, ModuleType
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import aamm.file_system as fs
 from aamm import exception_message as em
@@ -110,24 +110,52 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
     return ConstantBooleanOperations()
 
 
-class NameSpace(type):
-    """Empty, non-instantiable metaclass"""
+class Namespace(type):
+    """Create not-instantiable class whose methods are static."""
 
-    def __new__(cls, name, bases, dctn):
+    def __new__(cls, name: str, bases: tuple[type, ...], dctn: dict[str, Any]):
         if bases:
-            raise ValueError("`NameSpace` does not support inheritance")
+            raise ValueError("`Namespace` does not support inheritance")
 
-        name_space = super().__new__(cls, name, (), dctn)
-        members = {
-            key: val
-            for key, val in vars(name_space).items()
-            if not key.startswith("_")
-        }
+        namespace = super().__new__(cls, name, (), dctn)
+        members = {k: v for k, v in vars(namespace).items() if k.isalpha()}
 
         class Instance:
             __slots__ = tuple(members)
 
         instance = Instance()
+
+        for item in members.items():
+            setattr(instance, *item)
+
+        return instance
+
+
+class NamespaceTrackUnused(type):
+    """Create a `Namespace` with a special `_unused_names` method."""
+
+    def __new__(cls, name: str, bases: tuple[type, ...], dctn: dict[str, Any]):
+        if bases:
+            raise ValueError("`Namespace` does not support inheritance")
+
+        namespace = super().__new__(cls, name, (), dctn)
+        members = {k: v for k, v in vars(namespace).items() if k.isalpha()}
+
+        unused_names = set(members)
+
+        class Instance:
+            __slots__ = tuple(members)
+
+            def __getattribute__(self, name: str):
+                unused_names.discard(name)
+                return super().__getattribute__(name)
+
+            @staticmethod
+            def _unused_names() -> list[str]:
+                return sorted(unused_names)
+
+        instance = Instance()
+
         for item in members.items():
             setattr(instance, *item)
 

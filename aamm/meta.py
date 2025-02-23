@@ -1,6 +1,7 @@
 from aamm._.meta import (
     ConstantBooleanOperations,
-    NameSpace,
+    Namespace,
+    NamespaceTrackUnused,
     ReadOnlyProperty,
     capture_stdout,
     import_path,
