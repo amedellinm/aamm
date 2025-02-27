@@ -148,7 +148,12 @@ class FakeTestSuite:
 
                 except Exception as exception:
                     stack = traceback.extract_tb(exception.__traceback__)
-                    summary = stack[len(stack) != 1]
+
+                    for summary in stack:
+                        if summary.name == test.run.__name__:
+                            break
+                    else:
+                        summary = stack[-1]
 
                     # Store failure data.
                     test.where = f"{summary.lineno}:{summary.colno}"

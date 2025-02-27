@@ -49,7 +49,9 @@ def main(root: str):
             for t in tests:
                 printf(f"{t.test_name}")
                 printf(f"error -- {t.error_name}: {t.error_message}")
-                printf(f"where -- {fs.relative(t.module_path)} {t.where}")
+                printf(
+                    f"where -- {t.module_path.removeprefix(root + fs.SEP)} {t.where}"
+                )
 
     print()
 
