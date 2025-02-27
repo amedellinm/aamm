@@ -116,6 +116,9 @@ class YearMonth:
             return
         self.value = 12 * year + month - 1
 
+    def __int__(self) -> int:
+        return 100 * self.year + self.month
+
     def __isub__(self, other: int | Self) -> Self | int:
         return self.__sub__(other)
 
@@ -138,7 +141,7 @@ class YearMonth:
         return f"{type(self).__qualname__}({self.year}, {self.month})"
 
     def __str__(self) -> str:
-        return f"{self.year:>04}-{self.month:>02}"
+        return str(int(self))
 
     def __sub__(self, other: int | Self) -> Self | int:
         if isinstance(other, cls := type(self)):
@@ -146,6 +149,11 @@ class YearMonth:
         elif isinstance(other, int):
             return cls(self.value - other)
         raise TypeError(em.operand_error("-", self, other))
+
+    @classmethod
+    def current(cls) -> Self:
+        """Return today's `cls`."""
+        return cls.from_date(Date.today())
 
     def current_month() -> int:
         """Return today's month."""
@@ -181,10 +189,6 @@ class YearMonth:
     @property
     def month(self) -> int:
         return self.value % 12 + 1
-
-    def raw_string(self) -> str:
-        """Return a raw representation of `self` as a string in the format 'YYYYMM'."""
-        return f"{self.year:>04}{self.month:>02}"
 
     @property
     def year(self) -> int:
