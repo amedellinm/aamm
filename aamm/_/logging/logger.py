@@ -106,9 +106,9 @@ class Logger:
         self.separate(multiplier_exit)
 
     def separate(self, multiplier: int = 2) -> Self:
-        """Log `multiplier * self.end` idempotently."""
+        """Log `multiplier * self.END` idempotently."""
         if self.sep_registry[self.stream]:
-            self.write(end=multiplier * self.end, flush=False)
+            self.write(end=multiplier * self.END, flush=False)
             self.sep_registry[self.stream] = False
 
         return self
@@ -143,11 +143,11 @@ class Logger:
 
         end:
             * String appended at the end of the constructed message.
-            * Uses `self.end` if `None`.
+            * Uses `self.END` if `None`.
 
         sep:
             * String used to join `values`.
-            * Uses `self.sep` if `None`.
+            * Uses `self.SEP` if `None`.
 
         use_repr:
             * Decides how to convert `values` to strings.
@@ -155,7 +155,7 @@ class Logger:
             * If `False` uses `str`.
 
         flush:
-            * If `True`, call `self.flush` after writing.
+            * If `True`, call `self.FLUSH` after writing.
 
         RETURNS
         -------
@@ -167,7 +167,7 @@ class Logger:
         if self.enabled:
             end = self.END if end is None else end
             sep = self.SEP if sep is None else sep
-            use_repr = self.FLUSH if use_repr is None else use_repr
+            use_repr = self.USE_REPR if use_repr is None else use_repr
             flush = self.FLUSH if flush is None else flush
 
             self.sep_registry[self.stream] = True
