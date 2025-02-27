@@ -38,13 +38,13 @@ def indent(
     return re.subn(r"\n+", repl, first_indent + string)[0]
 
 
-def line_formatter(string: str, strategy: Callable[[str, int], str]) -> str:
+def line_formatter(string: str, formatter: Callable[[str, int], str]) -> str:
     line_index = -1
 
     def repl(match: re.Match) -> str:
         nonlocal line_index
         line_index += 1
-        return strategy(match.group(), line_index)
+        return formatter(match.group(), line_index)
 
     return re.subn(r".+(\n|$)", repl, string)[0]
 
