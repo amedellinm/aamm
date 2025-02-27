@@ -1,15 +1,15 @@
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Iterator, Sequence
+from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 
 
-def cap_iterable(iterable: Iterable, n: int) -> Iterator:
+def cap_iter(iterable: Iterable, n: int) -> Iterator:
     """Cap an iterable to `n` iterations."""
     for i, _ in zip(iterable, range(n)):
         yield i
 
 
 def group_by(
-    data: Iterable[tuple],
+    data: Iterable[tuple[Hashable]],
     keys: int | Sequence[int] = 0,
     values: int | Sequence[int] | None = None,
 ) -> defaultdict:
