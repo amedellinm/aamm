@@ -1,1 +1,1 @@
-from aamm._.logging.formats import function_call, reprlike
+from aamm._.logging.formats import contents_table_row, function_call, reprlike
