@@ -133,3 +133,77 @@ class TestYearMonth(testing.TestSuite):
 
         asserts.equal(ym1.month, (ym1 + 12).month)
         asserts.equal(ym1.year + 1, (ym1 + 12).year)
+
+
+class TestYearWeek(testing.TestSuite):
+    def test_arithmetic(self):
+        ym1 = calendar.YearWeek(2000, 1)
+        ym2 = calendar.YearWeek(2000, 2)
+        ym3 = calendar.YearWeek(2000, 3)
+
+        asserts.equal(ym1 + 1, ym2)
+        asserts.equal(ym1 + 2, ym3)
+        asserts.equal(ym3 - 1, ym2)
+        asserts.equal(ym3 - 2, ym1)
+
+        asserts.equal(ym1 - ym2, -1)
+        asserts.equal(ym2 - ym1, +1)
+        asserts.equal(ym3 - ym1, +2)
+
+    def test_construction(self):
+        YearWeek = calendar.YearWeek
+
+        for weekday in (expected := YearWeek.current()):
+            asserts.equal(expected, YearWeek.from_date(weekday))
+
+        YW = YearWeek(2000, 1)
+
+        asserts.equal(YW, YearWeek.from_integer(200001))
+        asserts.equal(YearWeek(1, 1), YearWeek.from_integer(101))
+        asserts.equal(YearWeek(400, 12), YearWeek.from_integer(40012))
+        asserts.raise_exception(ValueError, YearWeek.from_integer, -40012)
+
+        asserts.equal(YW, YearWeek.from_string("200001"))
+        asserts.equal(YearWeek(400, 12), YearWeek.from_string("040012"))
+        asserts.raise_exception(ValueError, YearWeek.from_string, "200053")
+
+    def test_elapse(self):
+        ym1 = calendar.YearWeek(2000, 1)
+        ym2 = calendar.YearWeek(2000, 2)
+        ym3 = calendar.YearWeek(2000, 3)
+
+        test_elapse_generic(calendar.YearWeek.elapse, ym1, ym2, ym3)
+
+    def test_immutability(self):
+        ym1 = calendar.YearWeek(2000, 1)
+        ym2 = calendar.YearWeek(2000, 1)
+        ym3 = calendar.YearWeek(2000, 2)
+
+        with asserts.exception_context(AttributeError):
+            ym1.value = 10
+
+        asserts.false(ym1 is ym2)
+
+        asserts.true(ym1 == ym2)
+        asserts.false(ym1 == ym3)
+        asserts.true(hash(ym1) == hash(ym2))
+        asserts.false(hash(ym1) == hash(ym3))
+
+        asserts.true(ym1 == 104303)
+        asserts.true(hash(ym1) == hash(104303))
+        asserts.true(ym1 == 104303.0)
+        asserts.true(hash(ym1) == hash(104303.0))
+
+    def test_iter(self):
+        ym = calendar.YearWeek(2000, 1)
+        asserts.equal(tuple(ym), tuple(calendar.elapse(ym[0], ym[-1])))
+
+    def test_week_wrapping(self):
+        yw1 = calendar.YearWeek(2000, 1) - 1
+        yw2 = calendar.YearWeek(2000, 52) + 1
+
+        asserts.equal(yw1.year, 1999)
+        asserts.equal(yw1.week, 52)
+
+        asserts.equal(yw2.year, 2001)
+        asserts.equal(yw2.week, 1)
