@@ -13,7 +13,7 @@ def test_elapse_generic(elapse, x1, x2, x3):
     asserts.equal(tuple(elapse(x3, x1, -2)), (x3, x1))
 
 
-class TestSchedule(testing.TestSuite):
+class TestCalendar(testing.TestSuite):
     def test_elapse(self):
         d1 = Date(2000, 1, 1)
         d2 = Date(2000, 1, 2)
@@ -47,6 +47,24 @@ class TestSchedule(testing.TestSuite):
         asserts.equal(calendar.find_weekday(d3, d3.weekday(), -2, True), d1)
 
         asserts.raise_exception(ValueError, calendar.find_weekday, d1, d1.weekday(), 0)
+
+    def test_first_isodate(self):
+        test_cases = {
+            1995: calendar.Date(1995, 1, 2),
+            1996: calendar.Date(1996, 1, 1),
+            1997: calendar.Date(1996, 12, 30),
+            1998: calendar.Date(1997, 12, 29),
+            1999: calendar.Date(1999, 1, 4),
+            2000: calendar.Date(2000, 1, 3),
+            2001: calendar.Date(2001, 1, 1),
+            2002: calendar.Date(2001, 12, 31),
+            2003: calendar.Date(2002, 12, 30),
+            2004: calendar.Date(2003, 12, 29),
+            2005: calendar.Date(2005, 1, 3),
+        }
+
+        for year, date in test_cases.items():
+            asserts.equal(calendar.first_isodate(year), date)
 
 
 class TestYearMonth(testing.TestSuite):
