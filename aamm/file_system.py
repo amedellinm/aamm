@@ -1,6 +1,5 @@
 from aamm._.file_system import (
     SEP,
-    absolute,
     current_directory,
     current_file,
     cwd,
@@ -21,6 +20,7 @@ from aamm._.file_system import (
     normalize,
     relative,
     remove_extension,
+    resolve,
     search,
     segment,
     tail,

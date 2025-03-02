@@ -23,7 +23,7 @@ def capture_stdout(stream: io.TextIOBase):
 
 def import_path(path: str) -> ModuleType:
     """Import a Python module (.py) from a path using its absolute version as name."""
-    absolute_path = fs.absolute(path)
+    absolute_path = fs.resolve(path)
     spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[absolute_path] = module

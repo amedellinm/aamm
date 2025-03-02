@@ -1,17 +1,10 @@
 import glob
 import inspect
 import os
+import pathlib
 from collections.abc import Iterator
 
 SEP = os.path.sep
-
-
-def absolute(path: str) -> str:
-    """Return the absolute version of `path`."""
-    return os.path.abspath(path)
-
-
-_absolute = absolute
 
 
 def current_directory(stack_index: int = 0) -> str:
@@ -135,6 +128,11 @@ def remove_extension(path: str) -> str:
     return path.removesuffix(extension)
 
 
+def resolve(path: str) -> str:
+    """Return the resolve version of `path`."""
+    return str(pathlib.Path(path).resolve())
+
+
 def search(
     root: str = None,
     pattern: str = "*",
@@ -151,7 +149,7 @@ def search(
     )
 
     if absolute:
-        return map(lambda path: _absolute(join(root, path)), paths)
+        return map(lambda path: resolve(join(root, path)), paths)
     return paths
 
 
