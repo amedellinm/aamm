@@ -19,7 +19,7 @@ def current_file(stack_index: int = 0) -> str:
 
 def cwd() -> str:
     """Return the current working directory."""
-    return os.getcwd()
+    return resolve(os.getcwd())
 
 
 def directories(root: str, leafs_only: bool = False) -> list[str]:
