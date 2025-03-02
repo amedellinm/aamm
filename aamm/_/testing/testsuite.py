@@ -63,12 +63,11 @@ class TestSuiteMeta(type):
 
         # To enforce good practices, an exception is thrown if a test suite is declared
         # in a file with an unexpected path format.
-        if not is_test_file(cls.home_path):
+        cls.module_path = is_test_file(cls.home_path)
+        if not cls.module_path:
             raise RuntimeError(
                 f"{cls.__qualname__} is not instantiated inside a valid test file"
             )
-
-        cls.module_path = right_replace(cls.home_path, TEST_PATH_JOIN, "")
 
         test_suite_registry.add(cls)
 
@@ -174,19 +173,21 @@ def get_tags(test: Callable) -> frozenset:
     return test.run.__dict__.get(TAGS_ATTRIBUTE, frozenset())
 
 
-def is_test_file(path: str) -> bool:
+def is_test_file(path: str) -> str | None:
     """Check whether `path` is a valid test file path."""
     module_path = right_replace(path, TEST_PATH_JOIN, "")
-    package_path = fs.remove_extension(module_path) + fs.SEP + "__init__.py"
+    package_path = fs.join(fs.up(module_path, 2), fs.name(module_path), "__init__.py")
 
-    return all(
-        (
-            fs.is_file(path),
-            fs.has_extension(path, "py"),
-            fs.segment(path, -2) == TEST_DIRECTORY_NAME,
-            fs.exists(module_path) or fs.exists(package_path),
-        )
-    )
+    module_exists = fs.exists(module_path)
+    package_exists = fs.exists(package_path)
+
+    if (
+        fs.is_file(path)
+        and fs.has_extension(path, "py")
+        and fs.segment(path, -2) == TEST_DIRECTORY_NAME
+        and module_exists ^ package_exists
+    ):
+        return module_path if module_exists else fs.directory(package_path)
 
 
 def tag(*tags: tuple[Hashable]) -> Callable:
