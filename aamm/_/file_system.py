@@ -124,8 +124,7 @@ def relative(path: str) -> str:
 
 def remove_extension(path: str) -> str:
     """Return an extensionless version of `path`."""
-    extension = "." + _extension(path)
-    return path.removesuffix(extension)
+    return path.removesuffix("." + _extension(path))
 
 
 def resolve(path: str) -> str:
