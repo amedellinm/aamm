@@ -108,7 +108,7 @@ class Logger:
     def separate(self, multiplier: int = 2) -> Self:
         """Log `multiplier * self.END` idempotently."""
         if self.sep_registry[self.stream]:
-            self.write(end=multiplier * self.END, flush=False)
+            self.write(end=multiplier * self.END)
             self.sep_registry[self.stream] = False
 
         return self
