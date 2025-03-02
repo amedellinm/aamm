@@ -48,7 +48,7 @@ class TestTestSuite(testing.TestSuite):
 
         # Create a list of fake tests. Usually, this would be declared inside the test
         # suite using the `def` keyword.
-        tests = [Test("", "", char, lambda: None) for char in TEST_NAMES]
+        tests = [Test(lambda: None, test_name=char) for char in TEST_NAMES]
 
         fixed_seed = []
         none_seed = []

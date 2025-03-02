@@ -31,30 +31,21 @@ TAGS_ATTRIBUTE = "testing-tags"
 class Test:
     """A simple data structure to store test information and results."""
 
-    module_path: str
-    suite_name: str
-    test_name: str
     run: Callable
+    module_path: str = ""
+    home_path: str = ""
+    suite_name: str = ""
+    test_name: str = ""
     test_duration: float = None
-    where: str = None
-    error_name: str = None
+    exception: Exception = None
     error_message: str = None
+    frame_summary: traceback.FrameSummary = None
+    traceback_stack: traceback.StackSummary = None
 
     def __lt__(self, other) -> bool:
         a = (self.module_path, self.suite_name, self.test_name)
         b = (other.module_path, other.suite_name, other.test_name)
         return a < b
-
-    def __str__(self) -> str:
-        return (
-            f"module_path: {self.module_path}\n"
-            f"suite_name: {self.suite_name}\n"
-            f"test_name: {self.test_name}\n"
-            f"test_duration: {1000*self.test_duration:.3f} ms\n"
-            f"where: {self.where}\n"
-            f"error_name: {self.error_name}\n"
-            f"error_message: {self.error_message}"
-        )
 
 
 class TestSuiteMeta(type):
@@ -110,6 +101,7 @@ class FakeTestSuite:
                 storage.append(
                     Test(
                         module_path=cls.module_path,
+                        home_path=cls.home_path,
                         suite_name=cls.__qualname__,
                         test_name=test_name,
                         run=test,
@@ -152,13 +144,12 @@ class FakeTestSuite:
                     for summary in stack:
                         if summary.name == test.run.__name__:
                             break
-                    else:
-                        summary = stack[-1]
 
                     # Store failure data.
-                    test.where = f"{summary.lineno}:{summary.colno}"
-                    test.error_name = type(exception).__qualname__
-                    test.error_message = str(exception)
+                    test.exception = exception
+                    test.error_message = traceback.format_exc().splitlines()[-1]
+                    test.frame_summary = summary
+                    test.traceback_stack = stack[1:]
 
                 finally:
                     self.after()
