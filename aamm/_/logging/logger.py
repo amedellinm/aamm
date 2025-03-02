@@ -5,9 +5,9 @@ from contextlib import contextmanager
 from typing import Any, Literal, Self, TextIO
 from weakref import finalize
 
-import aamm.logging.formats as fmts
 from aamm import file_system as fs
 from aamm import meta
+from aamm._.logging import formats as fmts
 from aamm.strings import right_replace
 
 
