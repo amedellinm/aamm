@@ -10,6 +10,8 @@ from aamm.logging import Logger
 def main(root: str) -> int:
     logger = Logger.from_sys_stream("stdout")
 
+    LINES_AROUND = 3
+
     def format_line(line: str) -> str:
         if line.startswith(">"):
             logger.write(1 * "    " + line)
@@ -50,24 +52,33 @@ def main(root: str) -> int:
             for t in tests:
                 format_line(f"{t.test_name} -- {t.error_message}")
 
-                stack = t.traceback_stack
+                # Compute padding so that line numbers are aligned
+                padding = len(
+                    str(max(f.lineno for f in t.traceback_stack) + LINES_AROUND)
+                )
 
-                padding = len(str(max(f.lineno for f in stack) + 2))
-
-                for frame in stack:
-                    with open(frame.filename, "r") as file:
-                        i = frame.lineno - 3
-                        j = frame.lineno + 2
-                        lines = file.readlines()[i:j]
-
+                for frame in t.traceback_stack:
+                    # Make path relative to `root` for brevity.
                     filename = fs.resolve(frame.filename).removeprefix(root + fs.SEP)
                     format_line(f"    {filename}  ({frame.name})")
 
-                    for no, line in enumerate(lines, i + 1):
-                        marker = "-->" if no == frame.lineno else "   "
-                        format_line(
-                            f"{marker}{no:> {padding}}: {line.removesuffix('\n')}"
-                        )
+                    try:
+                        with open(frame.filename, "r") as file:
+                            i = frame.lineno - LINES_AROUND - 1
+                            j = frame.lineno + LINES_AROUND
+                            lines = file.readlines()[i:j]
+
+                    except:
+                        format_line(f"    ~~~ unabled to output traceback ~~~")
+
+                    else:
+                        for line_number, line in enumerate(lines, i + 1):
+                            marker = "-->" if line_number == frame.lineno else "   "
+
+                            format_line(
+                                f"{marker} {str(line_number).rjust(padding)}: "
+                                f"{line.removesuffix('\n')}"
+                            )
 
                     logger.separate(1)
 
