@@ -24,7 +24,6 @@ from aamm._.file_system import (
     search,
     segment,
     tail,
-    to_directory,
     up,
     with_extension,
     with_leaf,

@@ -158,11 +158,6 @@ def tail(path: str, n: int = 1) -> str:
     return SEP.join(path.split(SEP)[-n:])
 
 
-def to_directory(path: str) -> str:
-    """idempotent if `path` is a directory, gets the directory otherwise."""
-    return path if is_directory(path) else directory(path)
-
-
 def up(path: str, n: int = 1) -> str:
     """Move `n` segments up the given path."""
     for _ in range(n):
