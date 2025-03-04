@@ -1,5 +1,6 @@
 import sys
 
+import aamm
 from aamm import file_system as fs
 from aamm import testing
 from aamm.iterable import group_by, split_iter
@@ -13,7 +14,7 @@ def main() -> int:
     LINES_AROUND = 3
     TAB = "    "
 
-    root = fs.cwd()
+    root = fs.directory(aamm.__path__[0])
     tests = testing.main(root)
 
     total_count = len(tests)

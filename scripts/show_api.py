@@ -1,5 +1,6 @@
 import sys
 
+import aamm
 from aamm import file_system as fs
 from aamm import meta
 from aamm.logging import Logger
@@ -9,7 +10,9 @@ from aamm.logging.formats import contents_table_row
 def main():
     logger = Logger.from_sys_stream("stdout")
 
-    for path in sorted(map(fs.relative, fs.search(fs.cwd(), "**/*.py"))):
+    root = fs.directory(aamm.__path__[0])
+
+    for path in sorted(map(fs.relative, fs.search("**/*.py", root))):
         segments = path.split(fs.SEP)
 
         if segments[0] != "aamm":
@@ -35,7 +38,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # sys.exit(main())
-    import aamm
-
-    print(aamm.__path__[0])
+    sys.exit(main())
