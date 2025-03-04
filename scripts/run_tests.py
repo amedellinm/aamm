@@ -13,7 +13,7 @@ def main() -> int:
     LINES_AROUND = 3
     TAB = "    "
 
-    root = fs.resolve(fs.cwd())
+    root = fs.cwd()
     tests = testing.main(root)
 
     total_count = len(tests)
