@@ -20,5 +20,5 @@ def reprlike(obj: object, *attrs: tuple[str]) -> str:
 def contents_table_row(left: Any, right: Any, width: int = 88) -> str:
     l = str(left)
     r = str(right)
-    width -= len(l) + len(r) + 4
-    return f"{l}  {'.' * width}  {r}"
+    width -= len(l) + len(r) + 2
+    return f"{l} {'.' * width} {r}"
