@@ -212,7 +212,7 @@ def collect_tests(
 
 def discover_tests(root: str) -> set[TestSuiteMeta]:
     """Return a `set` of all `TestSuite` subclasses found in test files under `root`."""
-    for path in fs.search(root, f"**/{TEST_DIRECTORY_NAME}/*.py"):
+    for path in fs.search(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
         if is_test_file(path):
             meta.import_path(path)
 

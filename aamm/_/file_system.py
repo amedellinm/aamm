@@ -133,23 +133,18 @@ def resolve(path: str) -> str:
 
 
 def search(
+    pattern: str = "**",
     root: str = None,
-    pattern: str = "*",
-    absolute: bool = True,
     recursive: bool = True,
     include_hidden: bool = True,
 ) -> Iterator[str]:
     """Yield paths matching `pattern`."""
-    if root is None:
-        root = cwd()
-
-    paths = glob.iglob(
-        pattern, root_dir=root, recursive=recursive, include_hidden=include_hidden
+    return glob.iglob(
+        pattern,
+        root_dir=cwd() if root is None else root,
+        recursive=recursive,
+        include_hidden=include_hidden,
     )
-
-    if absolute:
-        return map(lambda path: resolve(join(root, path)), paths)
-    return paths
 
 
 def segment(path: str, index: int) -> str:
