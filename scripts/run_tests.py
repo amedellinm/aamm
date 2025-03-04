@@ -4,6 +4,7 @@ from aamm import file_system as fs
 from aamm import testing
 from aamm.iterable import group_by, split_iter
 from aamm.logging import Logger
+from aamm.logging.formats import contents_table_row
 
 
 def main() -> int:
@@ -33,11 +34,13 @@ def main() -> int:
         module_path = module_path.removeprefix(root + fs.SEP)
 
         # Format log message elements.
-        module = fs.remove_extension(module_path).replace(fs.SEP, ".")
-        score = f"{len(successful_tests):,}|{len(tests):,}"
-        filler = 101 - len(module) - len(score)
-
-        logger.write(f"{module}  {filler*'.'}  {score}")
+        logger.write(
+            contents_table_row(
+                fs.remove_extension(module_path).replace(fs.SEP, "."),
+                f"{len(successful_tests):,}|{len(tests):,}",
+                102,
+            )
+        )
 
         # Group failed tests based on suite name.
         for suite, tests in group_by((t.suite_name, t) for t in failed_tests).items():
