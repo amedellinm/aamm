@@ -13,7 +13,7 @@ def main():
     cwd = fs.cwd()
     fs.cd(root := fs.directory(aamm.__path__[0]))
 
-    for path in sorted(map(fs.relative, fs.search("**/*.py", root))):
+    for path in sorted(fs.search("**/*.py", root)):
         segments = path.split(fs.SEP)
 
         if segments[0] != "aamm":

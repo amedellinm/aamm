@@ -3,6 +3,7 @@ import sys
 import aamm
 from aamm import file_system as fs
 from aamm import testing
+from aamm._.testing import asserts
 from aamm.iterable import group_by, split_iter
 from aamm.logging import Logger
 from aamm.logging.formats import contents_table_row
@@ -58,8 +59,13 @@ def main() -> int:
                 )
 
                 for frame in t.traceback_stack:
+                    # Ignore stack frames inside `asserts.__file__`.
+                    if frame.filename == asserts.__file__:
+                        continue
+
                     # Make path relative to `root` for brevity.
                     filename = fs.relative(frame.filename)
+
                     logger.write(f"{3*TAB}{filename}  ({frame.name})")
 
                     try:
