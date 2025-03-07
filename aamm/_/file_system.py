@@ -7,6 +7,11 @@ from collections.abc import Iterator
 SEP = os.path.sep
 
 
+def cd(path: str):
+    """Change CWD to `path`."""
+    os.chdir(path)
+
+
 def current_directory(stack_index: int = 0) -> str:
     """Get the directory path of the source file of the caller."""
     return directory(current_file(stack_index=stack_index + 1))

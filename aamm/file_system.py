@@ -1,5 +1,6 @@
 from aamm._.file_system import (
     SEP,
+    cd,
     current_directory,
     current_file,
     cwd,
