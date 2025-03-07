@@ -9,7 +9,7 @@ from typing import Self
 
 from aamm import exception_message as em
 from aamm.meta import ReadOnlyProperty
-from aamm.strings import create_matcher
+from aamm.string import create_matcher
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(weeks=1)

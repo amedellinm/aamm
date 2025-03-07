@@ -8,7 +8,7 @@ from weakref import finalize
 from aamm import file_system as fs
 from aamm import meta
 from aamm._.logging import formats as fmts
-from aamm.strings import right_replace
+from aamm.string import right_replace
 
 
 class Logger:

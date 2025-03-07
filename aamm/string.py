@@ -1,4 +1,4 @@
-from aamm._.strings import (
+from aamm._.string import (
     create_matcher,
     indent,
     is_camelcase,

@@ -7,7 +7,7 @@ from itertools import chain
 
 from aamm import file_system as fs
 from aamm import meta
-from aamm.strings import right_replace
+from aamm.string import right_replace
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
