@@ -18,6 +18,8 @@ def main():
 
         if segments[0] != "aamm":
             continue
+        if segments[1] == "scripts":
+            continue
         if "_" in segments:
             continue
         if "__tests" in segments:
