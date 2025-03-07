@@ -16,6 +16,7 @@ def main() -> int:
 
     cwd = fs.cwd()
     fs.cd(root := fs.directory(aamm.__path__[0]))
+
     tests = testing.main(root)
 
     total_count = len(tests)

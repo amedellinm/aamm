@@ -10,7 +10,8 @@ from aamm.logging.formats import contents_table_row
 def main():
     logger = Logger.from_sys_stream("stdout")
 
-    root = fs.directory(aamm.__path__[0])
+    cwd = fs.cwd()
+    fs.cd(root := fs.directory(aamm.__path__[0]))
 
     for path in sorted(map(fs.relative, fs.search("**/*.py", root))):
         segments = path.split(fs.SEP)
@@ -35,6 +36,9 @@ def main():
             logger.write("   ", contents_table_row(key, type(value).__qualname__, 70))
 
         logger.separate(1)
+
+    # Resume CWD.
+    fs.cd(cwd)
 
 
 if __name__ == "__main__":
