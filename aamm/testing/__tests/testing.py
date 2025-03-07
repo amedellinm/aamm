@@ -75,10 +75,10 @@ class TestTestSuite(testing.TestSuite):
             pass
 
         # The special name "TestSuite" is never registered.
-        asserts.not_identical(TestSuite, test_suite_registry)
+        asserts.not_contain(test_suite_registry, TestSuite)
 
         # Any other name is.
-        asserts.identical(MyTestSuite, test_suite_registry)
+        asserts.contain(test_suite_registry, MyTestSuite)
         test_suite_registry.remove(MyTestSuite)
 
     def test_tags(self):

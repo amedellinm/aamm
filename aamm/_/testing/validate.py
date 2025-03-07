@@ -20,4 +20,4 @@ def between(
 
 def sequences_equal(*sequences: tuple[Sequence]) -> bool:
     """Test equality between the nth element of all sequences, for all elements."""
-    return all_equal(map(len, sequences)) and all(map(all_equal, zip(sequences)))
+    return all_equal(map(len, sequences)) and all(map(all_equal, zip(*sequences)))

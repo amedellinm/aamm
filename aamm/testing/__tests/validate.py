@@ -12,8 +12,8 @@ class TestStd(TestSuite):
     def test_sequences_equal(self):
         asserts.true(sequences_equal((1, 2, 3), (1, 2, 3), (1, 2, 3)))
         asserts.true(sequences_equal((1, 2, 3), [1, 2, 3], (1, 2, 3)))
-        asserts.true(sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
-        asserts.true(sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
+        asserts.false(sequences_equal((1, 2, 3), (1, 2, 4), (1, 2, 3)))
+        asserts.false(sequences_equal((1, 2, 3), (2, 1, 3), (1, 2, 3)))
 
     def test_between(self):
         a, b = -4, 6

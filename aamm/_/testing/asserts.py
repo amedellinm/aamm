@@ -95,6 +95,10 @@ def less_than(a, b):
     _assertion(a < b, f"assert {a!r} < {b!r}")
 
 
+def not_contain(container: Container, item: Any):
+    _assertion(item not in container, f"assert {item!r} not in {container!r}")
+
+
 def not_equal(a, b):
     _assertion(a != b, f"assert {a!r} != {b!r}")
 
