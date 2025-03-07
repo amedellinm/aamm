@@ -95,6 +95,14 @@ def less_than(a, b):
     _assertion(a < b, f"assert {a!r} < {b!r}")
 
 
+def not_equal(a, b):
+    _assertion(a != b, f"assert {a!r} != {b!r}")
+
+
+def not_identical(a, b):
+    _assertion(a is not b, f"assert {a!r} is not {b!r}")
+
+
 def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
     try:
         function(*args, **kwargs)

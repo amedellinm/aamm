@@ -116,19 +116,19 @@ class TestYearMonth(testing.TestSuite):
         with asserts.exception_context(AttributeError):
             ym1.value = 10
 
-        asserts.false(ym1 is ym2)
+        asserts.not_identical(ym1, ym2)
 
-        asserts.true(ym1 == ym2)
-        asserts.false(ym1 == ym3)
-        asserts.true(hash(ym1) == hash(ym2))
-        asserts.false(hash(ym1) == hash(ym3))
+        asserts.equal(ym1, ym2)
+        asserts.not_equal(ym1, ym3)
+        asserts.equal(hash(ym1), hash(ym2))
+        asserts.not_equal(hash(ym1), hash(ym3))
 
-        asserts.true(ym1 == 24000)
-        asserts.true(hash(ym1) == hash(24000))
-        asserts.true(ym1 == 24000.0)
-        asserts.true(hash(ym1) == hash(24000.0))
-        asserts.true(ym1 == 24000.0 + 0j)
-        asserts.true(hash(ym1) == hash(24000.0 + 0j))
+        asserts.equal(ym1, 24000)
+        asserts.equal(hash(ym1), hash(24000))
+        asserts.equal(ym1, 24000.0)
+        asserts.equal(hash(ym1), hash(24000.0))
+        asserts.equal(ym1, 24000.0 + 0j)
+        asserts.equal(hash(ym1), hash(24000.0 + 0j))
 
     def test_iter(self):
         ym = calendar.YearMonth(2000, 1)
@@ -200,17 +200,17 @@ class TestYearWeek(testing.TestSuite):
         with asserts.exception_context(AttributeError):
             ym1.value = 10
 
-        asserts.false(ym1 is ym2)
+        asserts.not_identical(ym1, ym2)
 
-        asserts.true(ym1 == ym2)
-        asserts.false(ym1 == ym3)
-        asserts.true(hash(ym1) == hash(ym2))
-        asserts.false(hash(ym1) == hash(ym3))
+        asserts.equal(ym1, ym2)
+        asserts.not_equal(ym1, ym3)
+        asserts.equal(hash(ym1), hash(ym2))
+        asserts.not_equal(hash(ym1), hash(ym3))
 
-        asserts.true(ym1 == 104303)
-        asserts.true(hash(ym1) == hash(104303))
-        asserts.true(ym1 == 104303.0)
-        asserts.true(hash(ym1) == hash(104303.0))
+        asserts.equal(ym1, 104303)
+        asserts.equal(hash(ym1), hash(104303))
+        asserts.equal(ym1, 104303.0)
+        asserts.equal(hash(ym1), hash(104303.0))
 
     def test_iter(self):
         ym = calendar.YearWeek(2000, 1)

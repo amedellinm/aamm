@@ -10,6 +10,8 @@ from aamm._.testing.asserts import (
     identical,
     less_equal,
     less_than,
+    not_equal,
+    not_identical,
     raise_exception,
     true,
 )

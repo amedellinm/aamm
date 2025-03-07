@@ -14,7 +14,8 @@ def main() -> int:
     LINES_AROUND = 3
     TAB = "    "
 
-    root = fs.directory(aamm.__path__[0])
+    cwd = fs.cwd()
+    fs.cd(root := fs.directory(aamm.__path__[0]))
     tests = testing.main(root)
 
     total_count = len(tests)
@@ -32,7 +33,7 @@ def main() -> int:
         )
 
         # Make path relative to `root` for brevity.
-        module_path = module_path.removeprefix(root + fs.SEP)
+        module_path = fs.relative(module_path)
 
         # Format log message elements.
         logger.write(
@@ -57,7 +58,7 @@ def main() -> int:
 
                 for frame in t.traceback_stack:
                     # Make path relative to `root` for brevity.
-                    filename = fs.resolve(frame.filename).removeprefix(root + fs.SEP)
+                    filename = fs.relative(frame.filename)
                     logger.write(f"{3*TAB}{filename}  ({frame.name})")
 
                     try:
@@ -83,6 +84,9 @@ def main() -> int:
                     logger.separate(1)
 
     logger.separate()
+
+    # Resume CWD.
+    fs.cd(cwd)
 
     # If the number of successful tests is equal to the total number of tests, then the
     # exit code of the program should be 0 (everything ok).
