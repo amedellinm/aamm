@@ -74,7 +74,8 @@ def main() -> int:
                 msg = fmts.traceback(stack, ignore_paths={asserts.__file__})
                 msg = indent(msg, 3)
 
-                logger.write(f"{2*TAB}{t.test_name} -- {t.error_message}")
+                error_message = fmts.exception_message(t.exception)
+                logger.write(f"{2*TAB}{t.test_name} -- {error_message}")
                 logger.write(msg)
 
     logger.separate()
