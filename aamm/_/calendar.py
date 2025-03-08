@@ -5,11 +5,16 @@ from datetime import date as Date
 from datetime import datetime as DateTime
 from datetime import timedelta as TimeDelta
 from numbers import Number
-from typing import Self
 
 from aamm import exception_message as em
 from aamm.meta import ReadOnlyProperty
 from aamm.string import create_matcher
+
+try:
+    from typing import Self
+except ImportError:
+    from typing import Any as Self
+
 
 DAY = TimeDelta(days=1)
 WEEK = TimeDelta(weeks=1)

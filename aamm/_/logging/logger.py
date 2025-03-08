@@ -3,11 +3,16 @@ import os
 import sys
 from collections import deque
 from contextlib import contextmanager
-from typing import Any, Literal, Self, TextIO
+from typing import Any, Literal, TextIO
 from weakref import finalize
 
 from aamm import file_system as fs
 from aamm import meta
+
+try:
+    from typing import Self
+except ImportError:
+    from typing import Any as Self
 
 
 class Logger:
