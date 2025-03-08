@@ -1,4 +1,4 @@
-from aamm.testing import TestSuite, asserts, main
+from aamm.testing import TestSuite, asserts
 from aamm.testing.validate import all_equal, between, sequences_equal
 
 
@@ -32,7 +32,3 @@ class TestStd(TestSuite):
         asserts.true(between(6, a, b, 0, 1))
         asserts.false(between(6, a, b, 1, 0))
         asserts.true(between(6, a, b, 1, 1))
-
-
-if __name__ == "__main__":
-    main()

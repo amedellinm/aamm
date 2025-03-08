@@ -1,7 +1,6 @@
 from aamm import testing
 from aamm.testing import asserts
-from aamm.testing.core import FakeTestSuite, Test, get_tags, test_suite_registry
-from aamm.testing.validate import all_equal
+from aamm.testing.core import FakeTestSuite, get_tags, test_suite_registry
 
 
 class TestTestSuite(testing.TestSuite):
@@ -34,38 +33,13 @@ class TestTestSuite(testing.TestSuite):
 
         registry = []
 
-        _, tests = FTS.collect_tests()
+        tests = FTS.collect_tests()
 
         # When `tests` gets run `registry` will be populated.
         FTS.run(tests)
 
         # Expect a particular sequence of letters.
         asserts.equal(list("ibababat"), registry)
-
-    def test_shuffle_seed(self):
-        TEST_NAMES = "0123456789"
-        ITERATIONS = 10
-
-        # Create a list of fake tests. Usually, this would be declared inside the test
-        # suite using the `def` keyword.
-        tests = [Test(lambda: None, test_name=char) for char in TEST_NAMES]
-
-        fixed_seed = []
-        none_seed = []
-
-        for _ in range(ITERATIONS):
-            # Given the same input and seed, tests run in the same order every time.
-            tests_copy = tests.copy()
-            testing.TestSuite.run(tests_copy, seed=0)
-            fixed_seed.append("".join(t.test_name for t in tests_copy))
-
-            # Given the same input but different seed, run order should vary.
-            tests_copy = tests.copy()
-            testing.TestSuite.run(tests_copy, seed=None)
-            none_seed.append("".join(t.test_name for t in tests_copy))
-
-        asserts.true(all_equal(fixed_seed))
-        asserts.false(all_equal(none_seed))
 
     def test_suite_registration(self):
         class TestSuite(testing.TestSuite):
@@ -100,7 +74,7 @@ class TestTestSuite(testing.TestSuite):
             def test_4(self):
                 pass
 
-        _, tests = FTS.collect_tests()
+        tests = FTS.collect_tests()
 
         # Get tagless tests only.
         filtered_tests = [t for t in tests if not get_tags(t)]

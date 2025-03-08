@@ -12,7 +12,6 @@ from aamm._.testing.testsuite import (
     discover_tests,
     get_tags,
     is_test_file,
-    main,
     run_tests,
     tag,
     test_suite_registry,

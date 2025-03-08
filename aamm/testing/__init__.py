@@ -1,1 +1,1 @@
-from aamm.testing.core import TestSuite, main, tag
+from aamm.testing.core import TestSuite, tag

@@ -38,9 +38,6 @@ class Test:
     test_name: str = ""
     test_duration: float = None
     exception: Exception = None
-    error_message: str = None
-    frame_summary: traceback.FrameSummary = None
-    traceback_stack: traceback.StackSummary = None
 
     def __lt__(self, other) -> bool:
         a = (self.module_path, self.suite_name, self.test_name)
@@ -91,7 +88,7 @@ class FakeTestSuite:
         pass
 
     @classmethod
-    def collect_tests(cls) -> tuple[TestSuiteMeta, list[Test]]:
+    def collect_tests(cls) -> list[Test]:
         """Collect all test symbols in `cls`."""
         storage = []
 
@@ -107,7 +104,7 @@ class FakeTestSuite:
                     )
                 )
 
-        return cls, storage
+        return storage
 
     @classmethod
     def initialize(cls):
@@ -115,12 +112,11 @@ class FakeTestSuite:
         pass
 
     @classmethod
-    def run(cls, tests: list[Test], seed: int = None):
+    def run(cls, tests: list[Test]):
         """Call all test symbols in `cls` in a random order and return results data."""
 
         # Tests are randomly shuffled before execution since they are expected to be
         # completely independent of each other and the order in which they are called.
-        random.seed(seed)
         random.shuffle(tests)
 
         # Instanciate a `cls` object to run the tests with.
@@ -146,9 +142,6 @@ class FakeTestSuite:
 
                     # Store failure data.
                     test.exception = exception
-                    test.error_message = traceback.format_exc().splitlines()[-1]
-                    test.frame_summary = summary
-                    test.traceback_stack = stack[1:]
 
                 finally:
                     self.after()
@@ -204,30 +197,28 @@ def tag(*tags: tuple[Hashable]) -> Callable:
 
 
 def collect_tests(
-    test_suites: set[TestSuiteMeta] = test_suite_registry,
-) -> dict[TestSuiteMeta, list[Test]]:
+    test_suites: set[TestSuite] = test_suite_registry,
+) -> dict[TestSuite, list[Test]]:
     """Generate a dictionary of test-suite: test-list."""
-    return dict(test_suite.collect_tests() for test_suite in test_suites)
+    return {test_suite: test_suite.collect_tests() for test_suite in test_suites}
 
 
-def discover_tests(root: str) -> set[TestSuiteMeta]:
+def discover_tests(root: str) -> list[Exception]:
     """Return a `set` of all `TestSuite` subclasses found in test files under `root`."""
+    discovery_errors = []
+
     for path in fs.search(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
         if is_test_file(path):
-            meta.import_path(path)
+            try:
+                meta.import_path(path)
+            except Exception as e:
+                discovery_errors.append(e)
 
-    return test_suite_registry.copy()
-
-
-def main(root: str, seed: int = None) -> list[Test]:
-    """Run a basic testing routine and return a list of executed tests."""
-    test_suites = discover_tests(root)
-    test_collections = collect_tests(test_suites)
-    run_tests(test_collections, seed=seed)
-    return sorted(chain.from_iterable(test_collections.values()))
+    return discovery_errors
 
 
-def run_tests(test_collections: dict[TestSuiteMeta, list[Test]], seed=None):
-    """Call the `TestSuiteMeta.run` method populating tests with result data."""
+def run_tests(test_collections: dict[TestSuite, list[Test]]) -> list[Test]:
+    """Call the `TestSuite.run` method populating tests with result data."""
     for test_suite, tests in test_collections.items():
-        test_suite.run(tests, seed)
+        test_suite.run(tests)
+    return sorted(chain.from_iterable(test_collections.values()))

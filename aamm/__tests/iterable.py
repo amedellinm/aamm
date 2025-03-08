@@ -1,5 +1,5 @@
 from aamm.iterable import cap_iter, group_by, hinted_sort, skip_iter, split_iter
-from aamm.testing import TestSuite, asserts, main
+from aamm.testing import TestSuite, asserts
 
 
 class TestIterable(TestSuite):
@@ -48,7 +48,3 @@ class TestIterable(TestSuite):
 
         asserts.equal(odds, true_group)
         asserts.equal(evens, false_group)
-
-
-if __name__ == "__main__":
-    main()
