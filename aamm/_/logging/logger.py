@@ -1,14 +1,13 @@
 import io
 import os
 import sys
+from collections import deque
 from contextlib import contextmanager
 from typing import Any, Literal, Self, TextIO
 from weakref import finalize
 
 from aamm import file_system as fs
 from aamm import meta
-from aamm._.logging import formats as fmts
-from aamm.string import right_replace
 
 
 class Logger:
@@ -48,33 +47,35 @@ class Logger:
         self.enabled = enabled
         self.unmanaged = unmanaged
 
-        self.buffer = io.StringIO()
+        self.__buffer = io.StringIO()
+        self.__undo_history = deque([], maxlen=50)
         self.sep_registry.setdefault(stream, True)
 
         if not unmanaged:
             finalize(self, self.stream.close)
 
     def __repr__(self) -> str:
-        return fmts.reprlike(self, "stream", "enabled", "unmanaged")
+        return f"{type(self).__qualname__}(stream={self.stream}, enabled={self.enabled}, unmanaged={self.unmanaged})"
 
     def clear_buffer(self) -> Self:
         """Clear buffer."""
-        self.buffer.seek(0)
-        self.buffer.truncate(0)
+        self.__buffer.seek(0)
+        self.__buffer.truncate()
+        self.__undo_history.clear()
         return self
 
     def clear_stream(self) -> Self:
         """Clear stream."""
         self.stream.seek(0)
-        self.stream.truncate(0)
+        self.stream.truncate()
         return self
 
     def flush(self) -> Self:
-        """Dump `self.buffer` to `self.stream` though `self.write`."""
+        """Dump buffer to `self.stream` though `self.write`."""
         return self.write(end="", flush=True)
 
     @classmethod
-    def from_current_file(cls, stack_index=0) -> Self:
+    def from_current_file(cls, stack_index: int = 0) -> Self:
         """
         Construct a `cls` instance using a stream that points to the file defined
         by joining the path segments:
@@ -83,10 +84,10 @@ class Logger:
             * A .log file of the same name as the caller's source file
 
         """
-        path = fs.with_extension(fs.current_file(stack_index + 1), "log")
-        leaf = fs.leaf(path)
-        path = right_replace(path, leaf, cls.DIR_NAME + fs.SEP + leaf)
-        os.makedirs(fs.directory(path), exist_ok=True)
+        file = fs.current_file(stack_index + 1)
+        logs = fs.with_leaf(file, cls.DIR_NAME)
+        os.makedirs(logs, exist_ok=True)
+        path = fs.join(logs, fs.with_extension(fs.leaf(file), "log"))
         return cls(open(path, "a"))
 
     @classmethod
@@ -105,12 +106,18 @@ class Logger:
         yield
         self.separate(multiplier_exit)
 
-    def separate(self, multiplier: int = 2) -> Self:
+    def separate(self, multiplier: int = 2, forced: bool = True) -> Self:
         """Log `multiplier * self.END` idempotently."""
-        if self.sep_registry[self.stream]:
+        if self.sep_registry[self.stream] or forced:
             self.write(end=multiplier * self.END)
             self.sep_registry[self.stream] = False
 
+        return self
+
+    def undo(self, actions: int = 1) -> Self:
+        n = sum(self.__undo_history.pop() for _ in range(actions))
+        self.__buffer.seek(self.__buffer.tell() - n)
+        self.__buffer.truncate()
         return self
 
     @contextmanager
@@ -172,10 +179,13 @@ class Logger:
 
             self.sep_registry[self.stream] = True
             msg = sep.join(map(repr if use_repr else str, values)) + end
-            self.buffer.write(msg)
+
+            n = self.__buffer.write(msg)
 
             if self.FLUSH if flush is None else flush:
-                self.stream.write(self.buffer.getvalue())
+                self.stream.write(self.__buffer.getvalue())
                 self.clear_buffer()
+            else:
+                self.__undo_history.append(n)
 
         return self
