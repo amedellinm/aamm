@@ -6,7 +6,7 @@ from datetime import datetime as DateTime
 from datetime import timedelta as TimeDelta
 from numbers import Number
 
-from aamm import exception_message as em
+import aamm.logging.formats as fmts
 from aamm.meta import ReadOnlyProperty
 from aamm.string import create_matcher
 
@@ -133,7 +133,7 @@ class DateValue:
             return self.value - other.value
         elif isinstance(other, int):
             return cls(self.value - other)
-        raise TypeError(em.operand_error("-", self, other))
+        raise TypeError(fmts.operand_error("-", self, other))
 
     @classmethod
     def current(cls) -> Self:
@@ -170,7 +170,7 @@ class YearMonth(DateValue):
 
         if isinstance(subscript, int):
             if not (-max_index <= subscript < max_index):
-                raise IndexError(em.index_error(self, subscript))
+                raise IndexError(fmts.index_error(self, subscript))
             subscript += (subscript < 0) * max_index
             return Date(self.year, self.month, subscript + 1)
 
@@ -238,7 +238,7 @@ class YearWeek(DateValue):
             if -7 <= subscript < 7:
                 subscript += (subscript < 0) * 7 + 1
                 return Date.fromisocalendar(self.year, self.week, subscript)
-            raise IndexError(em.index_error(self, subscript))
+            raise IndexError(fmts.index_error(self, subscript))
 
         elif isinstance(subscript, slice):
             return (

@@ -10,19 +10,12 @@ from aamm import file_system as fs
 from aamm.logging import Logger
 
 
-def function_call(function_name: str, *args, **kwargs) -> str:
-    """Generate a string resembling a function call."""
-    params = ", ".join(
-        chain(map(repr, args), (f"{k}={v!r}" for k, v in kwargs.items()))
-    )
-    return f"{function_name}({params})"
+def _qualname(obj: object) -> str:
+    return type(obj).__qualname__
 
 
-def reprlike(obj: object, *attrs: tuple[str]) -> str:
-    """Generate a repr-like string of `obj` featuring `attrs`."""
-    Type = type(obj).__qualname__
-    args = ", ".join(f"{attr}={getattr(obj, attr)!r}" for attr in attrs)
-    return f"{Type}({args})"
+def attribute_error(obj: object, attribute: str) -> str:
+    return f"'{_qualname(obj)}' object has no attribute '{attribute}'"
 
 
 def contents_table_row(left: Any, right: Any, width: int = 88) -> str:
@@ -33,7 +26,38 @@ def contents_table_row(left: Any, right: Any, width: int = 88) -> str:
 
 
 def exception_message(exception: Exception) -> str:
-    return f"{type(exception).__qualname__}: {exception}"
+    msg = str(exception).strip() or "`no error message`"
+    return f"{type(exception).__qualname__}: {msg}"
+
+
+def function_call(function_name: str, *args, **kwargs) -> str:
+    """Generate a string resembling a function call."""
+    params = ", ".join(
+        chain(map(repr, args), (f"{k}={v!r}" for k, v in kwargs.items()))
+    )
+    return f"{function_name}({params})"
+
+
+def index_error(sequence: object, index: int) -> str:
+    length = len(sequence)
+    type_name = _qualname(sequence)
+    return f"index {index} out of range for {type_name!r} object of length {length}"
+
+
+def key_error(key: object, mapping: object) -> str:
+    return f"{key!r} not in {_qualname(mapping)!r} object"
+
+
+def operand_error(operator: str, *operands: tuple[object]) -> str:
+    operands = ", ".join(map(repr, operands))
+    return f"invalid operator '{operator}' for operand(s): {operands}"
+
+
+def reprlike(obj: object, *attrs: tuple[str]) -> str:
+    """Generate a repr-like string of `obj` featuring `attrs`."""
+    Type = type(obj).__qualname__
+    args = ", ".join(f"{attr}={getattr(obj, attr)!r}" for attr in attrs)
+    return f"{Type}({args})"
 
 
 def traceback(
@@ -81,3 +105,10 @@ def traceback(
         logger.separate(1)
 
     return logger.stream.getvalue()
+
+
+def type_error(obtained: object, expected: type | tuple[type]) -> str:
+    if isinstance(expected, type):
+        expected = (expected,)
+    types = " | ".join(t.__qualname__ for t in expected)
+    return f"expected type(s) {types}, got {_qualname(obtained)}"
