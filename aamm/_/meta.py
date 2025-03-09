@@ -8,7 +8,6 @@ from types import GenericAlias, ModuleType
 from typing import Any, Callable, Literal
 
 import aamm.file_system as fs
-import aamm.logging.formats as fmts
 
 
 @contextmanager
@@ -171,7 +170,9 @@ class ReadOnlyProperty:
 
     def __get__(self, obj, obj_type: type = None):
         if obj is None:
-            raise AttributeError(fmts.attribute_error(obj_type, self.display_name))
+            from aamm.logging.formats import attribute_error
+
+            raise AttributeError(attribute_error(obj_type, self.display_name))
         return getattr(obj, self.private_name)
 
     def __set__(self, obj, value):
