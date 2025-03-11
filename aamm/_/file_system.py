@@ -1,8 +1,8 @@
-import glob
 import inspect
 import os
 import pathlib
 from collections.abc import Iterator
+from glob import iglob
 
 SEP = os.path.sep
 
@@ -35,10 +35,9 @@ def directories(root: str, leafs_only: bool = False) -> list[str]:
     return [os.path.join(root, subpath) for subpath in paths]
 
 
-def directory(path: str, base_only: bool = False) -> str:
+def directory(path: str) -> str:
     """Return the directory component of `path`."""
-    directory_path = os.path.dirname(path)
-    return leaf(directory_path) if base_only else directory_path
+    return os.path.dirname(path)
 
 
 def exists(path: str) -> bool:
@@ -137,18 +136,18 @@ def resolve(path: str) -> str:
     return str(pathlib.Path(path).resolve())
 
 
-def search(
+def glob(
     pattern: str = "**",
     root: str = None,
     recursive: bool = True,
     include_hidden: bool = True,
 ) -> Iterator[str]:
     """Yield paths matching `pattern`."""
-    return glob.iglob(
+    return iglob(
         pattern,
         root_dir=cwd() if root is None else root,
         recursive=recursive,
-        include_hidden=include_hidden,
+        # include_hidden=include_hidden,
     )
 
 
