@@ -5,6 +5,8 @@ from aamm.logging import formats as fmts
 
 
 def main():
+    """Log the public symbols grouped by module."""
+
     logger = Logger.from_sys_stream("stdout")
 
     with fs.cwd_context(metadata.home):
@@ -14,14 +16,16 @@ def main():
             try:
                 module = meta.import_path(path)
             except Exception as e:
+                # Log exception.
                 logger.write("   ", fmts.exception_message(e))
             else:
+                # Log symbols.
                 for key, value in vars(module).items():
                     if key[:1].isalpha():
-                        msg = fmts.contents_table_row(
-                            key, type(value).__qualname__, 70
+                        logger.write(
+                            "   ",
+                            fmts.contents_table_row(key, fmts.qualname(value), 70),
                         )
-                        logger.write("   ", msg)
 
             logger.separate(1)
 
