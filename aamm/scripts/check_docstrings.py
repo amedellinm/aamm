@@ -7,6 +7,12 @@ from aamm.logging import formats as fmts
 
 
 def main():
+    """
+    Log the name of all the callable symbols in the codebase missing a docstring.
+    Ignore symbols whose names start with an '_'.
+
+    """
+
     logger = Logger.from_sys_stream("stdout")
 
     file_table = {}
