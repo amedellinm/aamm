@@ -32,10 +32,11 @@ class Test:
     """A simple data structure to store test information and results."""
 
     run: Callable
-    module_path: str = ""
-    home_path: str = ""
-    suite_name: str = ""
-    test_name: str = ""
+    module_path: str = None
+    home_path: str = None
+    suite_name: str = None
+    test_name: str = None
+    tags: frozenset = None
     test_duration: float = None
     exception: Exception = None
 
@@ -96,11 +97,12 @@ class FakeTestSuite:
             if callable(test) and test_name.startswith(TEST_PREFIX):
                 storage.append(
                     Test(
+                        run=test,
                         module_path=cls.module_path,
                         home_path=cls.home_path,
                         suite_name=cls.__qualname__,
                         test_name=test_name,
-                        run=test,
+                        tags=test.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
                     )
                 )
 
@@ -161,11 +163,6 @@ class TestSuite(FakeTestSuite, metaclass=TestSuiteMeta):
     pass
 
 
-def get_tags(test: Callable) -> frozenset:
-    """Extract tags from test."""
-    return test.run.__dict__.get(TAGS_ATTRIBUTE, frozenset())
-
-
 def is_test_file(path: str) -> str | None:
     """Check whether `path` is a valid test file path."""
     module_path = right_replace(path, TEST_PATH_JOIN, "")
@@ -205,29 +202,25 @@ def test_file(path: str) -> str:
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
-def collect_tests(
-    test_suites: set[TestSuite] = test_suite_registry,
-) -> dict[TestSuite, list[Test]]:
-    """Generate a dictionary of test-suite: test-list."""
-    return {test_suite: test_suite.collect_tests() for test_suite in test_suites}
-
-
-def discover_tests(root: str) -> list[Exception]:
-    """Return a `set` of all `TestSuite` subclasses found in test files under `root`."""
-    discovery_errors = []
+def main(
+    root: str, condition: Callable[[Test], bool]
+) -> tuple[list[Test], dict[str, Exception]]:
+    discovery_errors = {}
 
     for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
         if is_test_file(path):
             try:
                 meta.import_path(path)
             except Exception as e:
-                discovery_errors.append(e)
+                discovery_errors[path] = e
 
-    return discovery_errors
+    output = []
 
-
-def run_tests(test_collections: dict[TestSuite, list[Test]]) -> list[Test]:
-    """Call the `TestSuite.run` method populating tests with result data."""
-    for test_suite, tests in test_collections.items():
+    for test_suite in test_suite_registry:
+        tests = list(filter(condition, test_suite.collect_tests()))
         test_suite.run(tests)
-    return sorted(chain.from_iterable(test_collections.values()))
+        output.extend(tests)
+
+    output.sort()
+
+    return output, discovery_errors

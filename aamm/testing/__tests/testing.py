@@ -1,6 +1,6 @@
 from aamm import testing
 from aamm.testing import asserts
-from aamm.testing.core import FakeTestSuite, get_tags, test_suite_registry
+from aamm.testing.core import FakeTestSuite, test_suite_registry
 
 
 class TestTestSuite(testing.TestSuite):
@@ -77,15 +77,15 @@ class TestTestSuite(testing.TestSuite):
         tests = FTS.collect_tests()
 
         # Get tagless tests only.
-        filtered_tests = [t for t in tests if not get_tags(t)]
+        filtered_tests = [t for t in tests if not t.tags]
         asserts.equal(1, len(filtered_tests))
         asserts.equal("test_1", filtered_tests[0].test_name)
 
         # Get tests without the "Skip" tag.
-        filtered_tests = [t for t in tests if "Skip" not in get_tags(t)]
+        filtered_tests = [t for t in tests if "Skip" not in t.tags]
         asserts.equal(3, len(filtered_tests))
 
         # Get tests with at least 2 tags.
-        filtered_tests = [t for t in tests if len(get_tags(t)) > 1]
+        filtered_tests = [t for t in tests if len(t.tags) > 1]
         asserts.equal(1, len(filtered_tests))
         asserts.equal("test_4", filtered_tests[0].test_name)
