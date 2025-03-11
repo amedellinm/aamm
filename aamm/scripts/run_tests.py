@@ -1,50 +1,55 @@
-import sys
 import traceback
+from collections.abc import Callable
 
-import aamm
 import aamm.logging.formats as fmts
+import aamm.testing.core as testing
 from aamm import file_system as fs
+from aamm import metadata
 from aamm._.testing import asserts
 from aamm.iterable import group_by, split_iter
 from aamm.logging import Logger
 from aamm.string import indent
-from aamm.testing.core import (
-    collect_tests,
-    discover_tests,
-    run_tests,
-    test_suite_registry,
-)
 
 
-def main() -> int:
-    logger = Logger.from_sys_stream("stdout")
-    logger.separate()
+def main(
+    root: str = None, test_condition: Callable[[testing.Test], bool] = lambda *_: True
+) -> int:
+    """Run tests and log the results to the standard out."""
 
-    TAB = "    "
+    # Run the main test routine. This returns a list of executed tests plus a table of
+    # errors encountered during test discovery (if any).
+    tests, discovery_errors = testing.main(
+        metadata.home if root is None else root, test_condition
+    )
 
-    cwd = fs.cwd()
-    fs.cd(root := fs.directory(aamm.__path__[0]))
+    # Count test results.
+    total_test_count = len(tests)
+    successful_test_count = sum(test.exception is None for test in tests)
 
-    discovery_errors = discover_tests(root)
+    # Make module paths relative to the package's home.
+    with fs.cwd_context(metadata.home):
+        for test in tests:
+            test.module_path = fs.relative(test.module_path)
 
+    # Initialize an stdout logger.
+    logger = Logger.from_sys_stream("stdout").separate()
+
+    # Log any discovery errors. These errors occurred not during actual test execution
+    # but while discovering and collecting them. This means tests didn't fail because
+    # they didn't run in the first place; which is equally as bad.
     if discovery_errors:
-        header = "During test discovery"
-        logger.write(header)
-        logger.write(len(header) * "-")
+        logger.write(fmts.underlined_title("During test discovery"))
 
-        for exception in discovery_errors:
+        for exception in discovery_errors.values():
             stack = traceback.extract_tb(exception.__traceback__)[4:]
             logger.write(fmts.traceback(stack))
 
-    test_collections = collect_tests(test_suite_registry)
-    tests = run_tests(test_collections)
-
-    total_count = len(tests)
-    favorable_count = sum(test.exception is None for test in tests)
-
-    header = f"Ran {favorable_count:,}/{total_count:,} tests successfully"
-    logger.write(header)
-    logger.write(len(header) * "-")
+    # Log header.
+    logger.write(
+        fmts.underlined_title(
+            f"Ran {successful_test_count:,}/{total_test_count:,} tests successfully"
+        )
+    )
 
     # Group tests based on the module they evaluate.
     for module_path, tests in group_by((t.module_path, t) for t in tests).items():
@@ -52,21 +57,18 @@ def main() -> int:
             tests, lambda test: test.exception is None
         )
 
-        # Make path relative to `root` for brevity.
-        module_path = fs.relative(module_path)
-
-        # Format log message elements.
+        # Log module line.
         logger.write(
             fmts.contents_table_row(
-                fs.remove_extension(module_path).replace(fs.SEP, "."),
+                fmts.module_identifier(module_path),
                 f"{len(successful_tests):,}|{len(tests):,}",
                 102,
             )
         )
 
-        # Group failed tests based on suite name.
+        # Log failed tests information.
         for suite, tests in group_by((t.suite_name, t) for t in failed_tests).items():
-            logger.write(f"{TAB}{suite}")
+            logger.write(indent(suite))
 
             for t in tests:
                 stack = traceback.extract_tb(t.exception.__traceback__)[1:]
@@ -75,18 +77,18 @@ def main() -> int:
                 msg = indent(msg, 3)
 
                 error_message = fmts.exception_message(t.exception)
-                logger.write(f"{2*TAB}{t.test_name} -- {error_message}")
+                logger.write(indent(f"{t.test_name} -- {error_message}", 2))
                 logger.write(msg)
 
+    # Log blank space.
     logger.separate()
 
-    # Resume CWD.
-    fs.cd(cwd)
-
-    # If the number of successful tests is equal to the total number of tests, then the
-    # exit code of the program should be 0 (everything ok).
-    return int(bool(discovery_errors) or total_count != favorable_count)
+    # The exit code of the program should be 0 (everything ok) if all tests passed and
+    # there were no discovery errors.
+    return int(any(t.exception is not None for t in tests) or bool(discovery_errors))
 
 
 if __name__ == "__main__":
+    import sys
+
     sys.exit(main())
