@@ -10,12 +10,12 @@ from aamm import file_system as fs
 from aamm.logging import Logger
 
 
-def _qualname(obj: object) -> str:
+def qualname(obj: object) -> str:
     return type(obj).__qualname__
 
 
 def attribute_error(obj: object, attribute: str) -> str:
-    return f"'{_qualname(obj)}' object has no attribute '{attribute}'"
+    return f"'{qualname(obj)}' object has no attribute '{attribute}'"
 
 
 def contents_table_row(left: Any, right: Any, width: int = 88) -> str:
@@ -40,12 +40,16 @@ def function_call(function_name: str, *args, **kwargs) -> str:
 
 def index_error(sequence: object, index: int) -> str:
     length = len(sequence)
-    type_name = _qualname(sequence)
+    type_name = qualname(sequence)
     return f"index {index} out of range for {type_name!r} object of length {length}"
 
 
 def key_error(key: object, mapping: object) -> str:
-    return f"{key!r} not in {_qualname(mapping)!r} object"
+    return f"{key!r} not in {qualname(mapping)!r} object"
+
+
+def module_identifier(path: str) -> str:
+    return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
 
 
 def operand_error(operator: str, *operands: tuple[object]) -> str:
@@ -111,7 +115,7 @@ def type_error(obtained: object, expected: type | tuple[type]) -> str:
     if isinstance(expected, type):
         expected = (expected,)
     types = " | ".join(t.__qualname__ for t in expected)
-    return f"expected type(s) {types}, got {_qualname(obtained)}"
+    return f"expected type(s) {types}, got {qualname(obtained)}"
 
 
 def underlined_title(title: Any) -> str:
