@@ -112,3 +112,7 @@ def type_error(obtained: object, expected: type | tuple[type]) -> str:
         expected = (expected,)
     types = " | ".join(t.__qualname__ for t in expected)
     return f"expected type(s) {types}, got {_qualname(obtained)}"
+
+
+def underlined_title(title: Any) -> str:
+    return f"{title}\n{len(title) * '-'}"

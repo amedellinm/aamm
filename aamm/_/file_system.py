@@ -2,6 +2,7 @@ import inspect
 import os
 import pathlib
 from collections.abc import Iterator
+from contextlib import contextmanager
 from glob import iglob
 
 SEP = os.path.sep
@@ -25,6 +26,16 @@ def current_file(stack_index: int = 0) -> str:
 def cwd() -> str:
     """Return the current working directory."""
     return resolve(os.getcwd())
+
+
+@contextmanager
+def cwd_context(path: str):
+    CWD = cwd()
+    cd(path)
+    try:
+        yield
+    finally:
+        cd(CWD)
 
 
 def directories(root: str, leafs_only: bool = False) -> list[str]:
