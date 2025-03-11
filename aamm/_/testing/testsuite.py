@@ -193,6 +193,15 @@ def tag(*tags: tuple[Hashable]) -> Callable:
     return decorator
 
 
+def test_file(path: str) -> str:
+    leaf = (
+        fs.name(fs.directory(path)) + ".py"
+        if fs.leaf(path) == "__init__.py"
+        else fs.leaf(path)
+    )
+    return fs.with_leaf(path, TEST_PATH_JOIN + leaf)
+
+
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
 
@@ -207,7 +216,7 @@ def discover_tests(root: str) -> list[Exception]:
     """Return a `set` of all `TestSuite` subclasses found in test files under `root`."""
     discovery_errors = []
 
-    for path in fs.search(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
+    for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
         if is_test_file(path):
             try:
                 meta.import_path(path)

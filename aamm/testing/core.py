@@ -14,5 +14,6 @@ from aamm._.testing.testsuite import (
     is_test_file,
     run_tests,
     tag,
+    test_file,
     test_suite_registry,
 )
