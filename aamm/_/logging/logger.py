@@ -111,7 +111,7 @@ class Logger:
         yield
         self.separate(multiplier_exit)
 
-    def separate(self, multiplier: int = 2, forced: bool = True) -> Self:
+    def separate(self, multiplier: int = 2, forced: bool = False) -> Self:
         """Log `multiplier * self.END` idempotently."""
         if self.sep_registry[self.stream] or forced:
             self.write(end=multiplier * self.END)
@@ -120,6 +120,7 @@ class Logger:
         return self
 
     def undo(self, actions: int = 1) -> Self:
+        """Undo the last n actions. Only works if the actions were not flushed."""
         n = sum(self.__undo_history.pop() for _ in range(actions))
         self.__buffer.seek(self.__buffer.tell() - n)
         self.__buffer.truncate()
