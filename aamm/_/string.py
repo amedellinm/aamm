@@ -19,6 +19,7 @@ def create_matcher(pattern: str) -> Callable[[str], bool]:
     compiled_pattern = re.compile(pattern).search
 
     def is_match(string: str) -> bool:
+        """Return True if `string` matches `pattern`."""
         return bool(compiled_pattern(string))
 
     return is_match
