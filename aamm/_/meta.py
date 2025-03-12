@@ -2,12 +2,13 @@ import importlib.util
 import inspect
 import io
 import sys
+from collections import Counter
 from contextlib import contextmanager
 from functools import wraps
 from types import GenericAlias, ModuleType
 from typing import Any, Callable, Literal
 
-import aamm.file_system as fs
+from aamm import file_system as fs
 
 
 @contextmanager
@@ -22,12 +23,16 @@ def capture_stdout(stream: io.TextIOBase):
 
 def import_path(path: str) -> ModuleType:
     """Import a Python module (.py) from a path using its absolute version as name."""
-    absolute_path = fs.resolve(path)
-    spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
+    name = module_identifier(path)
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
-    sys.modules[absolute_path] = module
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def module_identifier(path: str) -> str:
+    return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
 
 
 def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
@@ -70,6 +75,16 @@ def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
         return decorated
 
     return decorator
+
+
+class CallCounter(Counter):
+    def __call__(self, target: Callable) -> Callable:
+        @wraps(target)
+        def decorated(*args, **kwargs):
+            self[target] += 1
+            return target(*args, **kwargs)
+
+        return decorated
 
 
 def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:

@@ -8,6 +8,7 @@ from typing import Any
 
 from aamm import file_system as fs
 from aamm.logging import Logger
+from aamm.meta import module_identifier
 
 
 def qualname(obj: object) -> str:
@@ -46,10 +47,6 @@ def index_error(sequence: object, index: int) -> str:
 
 def key_error(key: object, mapping: object) -> str:
     return f"{key!r} not in {qualname(mapping)!r} object"
-
-
-def module_identifier(path: str) -> str:
-    return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
 
 
 def operand_error(operator: str, *operands: tuple[object]) -> str:
