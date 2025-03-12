@@ -3,7 +3,6 @@ import time
 import traceback
 from collections.abc import Callable, Hashable
 from dataclasses import dataclass
-from itertools import chain
 
 from aamm import file_system as fs
 from aamm import meta
