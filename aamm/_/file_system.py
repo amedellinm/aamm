@@ -58,6 +58,7 @@ def exists(path: str) -> bool:
 
 def extension(path: str) -> str:
     """Return the extension of `path`."""
+    path = leaf(path)
     i = path.rfind(".")
     return path[i + 1 :] if i > 0 else ""
 
@@ -73,11 +74,29 @@ def files(root: str, leafs_only: bool = False) -> list[str]:
     return [os.path.join(root, subpath) for subpath in paths]
 
 
+def glob(
+    pattern: str = "**",
+    root: str = None,
+    recursive: bool = True,
+    include_hidden: bool = True,
+) -> Iterator[str]:
+    """Yield paths matching `pattern`."""
+    return iglob(
+        pattern,
+        root_dir=cwd() if root is None else root,
+        recursive=recursive,
+        # include_hidden=include_hidden,
+    )
+
+
 def has_extension(path: str, extension: str = None) -> bool:
     """Check `path` has extension `extension`."""
-    expected = extension.removeprefix(".")
     obtained = _extension(path)
-    return bool(obtained) if extension is None else expected == obtained
+    return (
+        bool(obtained)
+        if extension is None
+        else extension.removeprefix(".") == obtained
+    )
 
 
 def head(path: str, n: int = 1) -> str:
@@ -87,9 +106,7 @@ def head(path: str, n: int = 1) -> str:
 
 def here(*path_segments: tuple[str], stack_index: int = 0) -> str:
     """Construct a path in the current directory."""
-    return os.path.join(
-        current_directory(stack_index=stack_index + 1), SEP.join(path_segments)
-    )
+    return join(current_directory(stack_index=stack_index + 1), join(*path_segments))
 
 
 def is_directory(path: str) -> bool:
@@ -145,21 +162,6 @@ def remove_extension(path: str) -> str:
 def resolve(path: str) -> str:
     """Return the resolve version of `path`."""
     return str(pathlib.Path(path).resolve())
-
-
-def glob(
-    pattern: str = "**",
-    root: str = None,
-    recursive: bool = True,
-    include_hidden: bool = True,
-) -> Iterator[str]:
-    """Yield paths matching `pattern`."""
-    return iglob(
-        pattern,
-        root_dir=cwd() if root is None else root,
-        recursive=recursive,
-        # include_hidden=include_hidden,
-    )
 
 
 def segment(path: str, index: int) -> str:
