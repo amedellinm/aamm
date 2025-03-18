@@ -27,6 +27,17 @@ def _elapse(difference: int, delta: int) -> range:
     return range(0, difference, delta)
 
 
+def date_range(start: Date, stop: int, step: int = 1) -> Iterator[Date]:
+    """
+    Iterate like `range` but using `datetime.date` instead of `int`s. `start` is the
+    beginning of the range. The sign of `step` is ignored, instead it is inferred
+    from `stop`.
+
+    """
+    step = (-1 if stop < 0 else 1) * abs(step)
+    return (start + DAY * i for i in range(0, stop, step))
+
+
 def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
     """Generate dates from `start` to `end` advancing `step` dates at a time."""
     return (start + DAY * i for i in _elapse((end - start).days, delta))

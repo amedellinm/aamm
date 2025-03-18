@@ -6,6 +6,7 @@ from aamm._.calendar import (
     TimeDelta,
     YearMonth,
     YearWeek,
+    date_range,
     elapse,
     find_weekday,
     first_isodate,
