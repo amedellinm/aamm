@@ -193,11 +193,13 @@ class YearMonth(DateValue):
 
         raise TypeError(type_error(subscript, (int, slice)))
 
-    def __init__(self, years: int, months: int | None = None) -> None:
-        if months is None:
-            self.value = years
+    def __init__(self, year: int, month: int = None) -> None:
+        if month is None:
+            self.value = year
             return
-        self.value = 12 * years + months - 1
+        elif not (1 <= month <= 12):
+            raise ValueError(f"expected [1, 12] for `month`, got {month}")
+        self.value = 12 * year + month - 1
 
     def __int__(self) -> int:
         return 100 * self.year + self.month
