@@ -1,8 +1,10 @@
+from aamm import testing
 from aamm.iterable import cap_iter, group_by, hinted_sort, skip_iter, split_iter
-from aamm.testing import TestSuite, asserts
+from aamm.testing import asserts
 
 
-class TestIterable(TestSuite):
+class TestIterable(testing.TestSuite):
+    @testing.subjects(cap_iter)
     def test_cap_iter(self):
         def generator():
             while True:
@@ -11,6 +13,7 @@ class TestIterable(TestSuite):
         for i in range(20):
             asserts.equal(sum(1 for _ in cap_iter(generator(), i)), i)
 
+    @testing.subjects(group_by)
     def test_group_by(self):
         data = [
             ("A", 1, "a"),
@@ -28,6 +31,7 @@ class TestIterable(TestSuite):
         expected = {"A": [1, 2], "B": [3], "C": [4]}
         asserts.equal(dict(group_by(data, values=[1])), expected)
 
+    @testing.subjects(hinted_sort)
     def test_hinted_sort(self):
         sequence = [2, 1, 6, 2]
         asserts.equal(hinted_sort(sequence, []), [1, 2, 2, 6])
@@ -36,9 +40,11 @@ class TestIterable(TestSuite):
         asserts.equal(hinted_sort(sequence, [2], None, 1), [6, 1, 2, 2])
         asserts.equal(hinted_sort(sequence, [2, 6], None, 1), [1, 6, 2, 2])
 
+    @testing.subjects(skip_iter)
     def test_skip_iter(self):
         asserts.equal(tuple(skip_iter(range(10), 5)), tuple(range(5, 10)))
 
+    @testing.subjects(split_iter)
     def test_split_iter(self):
         numbers = range(1, 21)
         odds = list(range(1, 21, 2))

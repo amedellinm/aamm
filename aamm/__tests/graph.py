@@ -1,8 +1,8 @@
-from aamm import graph
-from aamm.testing import TestSuite, asserts
+from aamm import graph, testing
+from aamm.testing import asserts
 
 
-class TestGraph(TestSuite):
+class TestGraph(testing.TestSuite):
 
     @classmethod
     def initialize(cls):
@@ -20,16 +20,19 @@ class TestGraph(TestSuite):
         #    \ / \
         #     d   e
 
+    @testing.subjects(graph.breadth_first)
     def test_breadth_first(self):
         expected = "abcde"
         obtained = "".join(graph.breadth_first("a", self.graph.get))
         asserts.equal(expected, obtained)
 
+    @testing.subjects(graph.depth_first)
     def test_depth_first(self):
         expected = "abdec"
         obtained = "".join(graph.depth_first("a", self.graph.get))
         asserts.equal(expected, obtained)
 
+    @testing.subjects(graph.breadth_first_paths)
     def test_breadth_first_paths(self):
         expected = (
             ["a"],
@@ -41,6 +44,7 @@ class TestGraph(TestSuite):
         obtained = tuple(graph.breadth_first_paths("a", self.graph.get))
         asserts.equal(expected, obtained)
 
+    @testing.subjects(graph.depth_first_paths)
     def test_depth_first_paths(self):
         expected = (
             ["a"],
