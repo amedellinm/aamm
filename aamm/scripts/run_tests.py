@@ -101,16 +101,15 @@ def main(
             stack = traceback.extract_tb(exception.__traceback__)[4:]
             logger.write(fmts.exception_message(exception))
             logger.write(indent(fmts.traceback(stack)))
-            logger.separate(1, flush=False)
+            logger.separate(1)
 
         # Log blank space.
-        logger.undo(ignore_empty=True)
-        logger.separate(forced=True)
+        logger.separate(1, forced=True)
 
     if untested_symbols:
         logger.write(
             fmts.underlined_title(
-                "Missing tests for the following public symbols "
+                "Missing TESTS for the following public symbols "
                 f"({len(untested_symbols):,})"
             )
         )
@@ -122,11 +121,10 @@ def main(
             logger.write(f"    header_files: {symbol_info.header_files}")
             logger.write(f"    has_docstring: {symbol_info.has_docstring}")
             logger.write(f"    is_child: {symbol_info.is_child}")
-            logger.separate(1, flush=False)
+            logger.separate(1)
 
         # Log blank space.
-        logger.undo(ignore_empty=True)
-        logger.separate(forced=True)
+        logger.separate(1, forced=True)
 
     # The exit code of the program should be 0 (everything ok) if all tests passed and
     # there were no discovery errors.
