@@ -59,7 +59,7 @@ def depth_first(root: Any, expand: Callable[[Any], Iterator[Any]]) -> Iterator[A
 
         yield node
 
-        queue.extend(reversed(expand(node)))
+        queue.extend(reversed(tuple(expand(node))))
 
 
 def depth_first_paths(
