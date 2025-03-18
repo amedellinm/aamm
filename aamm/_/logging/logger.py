@@ -2,7 +2,6 @@ import io
 import os
 import sys
 from collections import deque
-from contextlib import contextmanager
 from typing import Any, Literal, TextIO
 from weakref import finalize
 
@@ -39,8 +38,8 @@ class Logger:
 
     SEP = " "
     END = "\n"
-    USE_REPR = False
     FLUSH = True
+
     sep_registry = {}
 
     unmanaged = meta.ReadOnlyProperty()
@@ -53,7 +52,7 @@ class Logger:
         self.unmanaged = unmanaged
 
         self.__buffer = io.StringIO()
-        self.__undo_history = deque([], maxlen=50)
+        self.__write_history = deque([], maxlen=50)
         self.sep_registry.setdefault(stream, True)
 
         if not unmanaged:
@@ -66,7 +65,7 @@ class Logger:
         """Clear buffer."""
         self.__buffer.seek(0)
         self.__buffer.truncate()
-        self.__undo_history.clear()
+        self.__write_history.clear()
         return self
 
     def clear_stream(self) -> Self:
@@ -80,7 +79,7 @@ class Logger:
         return self.write(end="", flush=True)
 
     @classmethod
-    def from_current_file(cls, stack_index: int = 0) -> Self:
+    def from_current_file(cls, mode: str = "a", stack_index: int = 0) -> Self:
         """
         Construct a `cls` instance using a stream that points to the file defined
         by joining the path segments:
@@ -93,7 +92,11 @@ class Logger:
         logs = fs.with_leaf(file, cls.DIR_NAME)
         os.makedirs(logs, exist_ok=True)
         path = fs.join(logs, fs.with_extension(fs.leaf(file), "log"))
-        return cls(open(path, "a"))
+        return cls(open(path, mode))
+
+    @classmethod
+    def from_string_io(cls) -> Self:
+        return cls(io.StringIO())
 
     @classmethod
     def from_sys_stream(
@@ -104,43 +107,29 @@ class Logger:
             return cls(getattr(sys, stream_name), unmanaged=True)
         raise ValueError(f"expected 'stdout' or 'stderr', got {stream_name!r}")
 
-    @contextmanager
-    def isolate(self, multiplier_enter: int = 2, multiplier_exit: int = 2):
-        """Run the `separate` method before and after the context."""
-        self.separate(multiplier_enter)
-        yield
-        self.separate(multiplier_exit)
-
-    def separate(self, multiplier: int = 2, forced: bool = False) -> Self:
+    def separate(
+        self, multiplier: int = 2, flush: bool = None, forced: bool = False
+    ) -> Self:
         """Log `multiplier * self.END` idempotently."""
         if self.sep_registry[self.stream] or forced:
-            self.write(end=multiplier * self.END)
+            self.write(end=multiplier * self.END, flush=flush)
             self.sep_registry[self.stream] = False
 
         return self
 
-    def undo(self, actions: int = 1) -> Self:
+    def undo(self, actions: int = 1, ignore_empty: bool = False) -> Self:
         """Undo the last n actions. Only works if the actions were not flushed."""
-        n = sum(self.__undo_history.pop() for _ in range(actions))
-        self.__buffer.seek(self.__buffer.tell() - n)
-        self.__buffer.truncate()
+        if self.__write_history or not ignore_empty:
+            n = sum(self.__write_history.pop() for _ in range(actions))
+            self.__buffer.seek(self.__buffer.tell() - n)
+            self.__buffer.truncate()
         return self
-
-    @contextmanager
-    def using_stream(self, stream: io.TextIOBase):
-        """Temporarily replace `self.stream`."""
-        self.stream, tmp = stream, self.stream
-        try:
-            yield
-        finally:
-            self.stream = tmp
 
     def write(
         self,
         *values: tuple[Any],
         end: str = None,
         sep: str = None,
-        use_repr: bool = None,
         flush: int = None,
     ) -> Self:
         """
@@ -162,11 +151,6 @@ class Logger:
             * String used to join `values`.
             * Uses `self.SEP` if `None`.
 
-        use_repr:
-            * Decides how to convert `values` to strings.
-            * If `True` uses `repr`.
-            * If `False` uses `str`.
-
         flush:
             * If `True`, call `self.FLUSH` after writing.
 
@@ -180,11 +164,10 @@ class Logger:
         if self.enabled:
             end = self.END if end is None else end
             sep = self.SEP if sep is None else sep
-            use_repr = self.USE_REPR if use_repr is None else use_repr
             flush = self.FLUSH if flush is None else flush
 
             self.sep_registry[self.stream] = True
-            msg = sep.join(map(repr if use_repr else str, values)) + end
+            msg = sep.join(map(str, values)) + end
 
             n = self.__buffer.write(msg)
 
@@ -192,6 +175,6 @@ class Logger:
                 self.stream.write(self.__buffer.getvalue())
                 self.clear_buffer()
             else:
-                self.__undo_history.append(n)
+                self.__write_history.append(n)
 
         return self
