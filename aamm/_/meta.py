@@ -77,16 +77,6 @@ def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
     return decorator
 
 
-class CallCounter(Counter):
-    def __call__(self, target: Callable) -> Callable:
-        @wraps(target)
-        def decorated(*args, **kwargs):
-            self[target] += 1
-            return target(*args, **kwargs)
-
-        return decorated
-
-
 def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
     """
     Description
