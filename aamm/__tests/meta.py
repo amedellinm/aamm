@@ -1,11 +1,13 @@
 import io
 import sys
 
-from aamm import meta
-from aamm.testing import TestSuite, asserts
+from aamm import file_system as fs
+from aamm import meta, testing
+from aamm.testing import asserts
 
 
-class TestMeta(TestSuite):
+class TestMeta(testing.TestSuite):
+    @testing.subjects(meta.capture_stdout)
     def test_capture_stdout(self):
         message = "Hello World"
 
@@ -16,6 +18,7 @@ class TestMeta(TestSuite):
         asserts.not_identical(stream, sys.stdout)
         asserts.equal(message, stream.getvalue())
 
+    @testing.subjects(meta.ConstantBooleanOperations)
     def test_constant_boolean_operations(self):
         everything = meta.ConstantBooleanOperations({"__contains__": True})
         asserts.contain(everything, "a")
@@ -29,6 +32,7 @@ class TestMeta(TestSuite):
         asserts.greater_than(infinity, None)
         asserts.greater_than(infinity, 1_000_000_000_000)
 
+    @testing.subjects(meta.import_path)
     def test_import_path(self):
         """
         `meta.import_path` is heavily used in the internals of the `aamm.testing`
@@ -37,6 +41,17 @@ class TestMeta(TestSuite):
 
         """
 
+    @testing.subjects(meta.module_identifier)
+    def test_module_identifier(self):
+        path = fs.join("a", "b", "c.py")
+        module = "a.b.c"
+        asserts.equal(module, meta.module_identifier(path))
+
+        path = fs.join("a", "b", "__init__.py")
+        module = "a.b"
+        asserts.equal(module, meta.module_identifier(path))
+
+    @testing.subjects(meta.Namespace)
     def test_namespace(self):
         class namespace(metaclass=meta.Namespace):
             bla = None
@@ -46,6 +61,7 @@ class TestMeta(TestSuite):
         with asserts.exception_context(AttributeError):
             namespace.ble = 10
 
+    @testing.subjects(meta.NamespaceTrackUnused)
     def test_namespace_track_unused(self):
         class namespace(metaclass=meta.NamespaceTrackUnused):
             b = 2
@@ -57,12 +73,15 @@ class TestMeta(TestSuite):
         namespace.a
         asserts.equal(namespace._unused_names(), [])
 
+    @testing.subjects(
+        meta.ReadOnlyProperty,
+        meta.ReadOnlyProperty.__get__,
+        meta.ReadOnlyProperty.__set__,
+        meta.ReadOnlyProperty.__set_name__,
+    )
     def test_read_only_property(self):
         class A:
             x = meta.ReadOnlyProperty()
-
-        with asserts.exception_context(AttributeError):
-            A.x
 
         a = A()
         a.x = 0
@@ -70,6 +89,11 @@ class TestMeta(TestSuite):
         with asserts.exception_context(AttributeError):
             a.x = 1
 
+        assert isinstance(A.x, meta.ReadOnlyProperty)
+        assert isinstance(a.x, int)
+        asserts.equal(a.x, a._x)
+
+    @testing.subjects(meta.typehint_handlers)
     def test_typehint_handlers(self):
         handler = meta.typehint_handlers(
             {str | list[str]: lambda arg: [arg] if isinstance(arg, str) else arg}
