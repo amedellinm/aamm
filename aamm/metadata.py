@@ -1,5 +1,4 @@
 from aamm._.metadata import (
-    Symbol,
     SymbolInfo,
     api_symbols,
     header_files,

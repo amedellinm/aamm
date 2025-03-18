@@ -31,11 +31,12 @@ def main(
     # Track untested symbols.
     tested_symbols = set(chain.from_iterable(test.subjects for test in tests))
     untested_symbols = tuple(
-        (symbol, symbol_info)
-        for symbol, symbol_info in metadata.api_symbols().items()
-        if id(symbol.value) not in tested_symbols
+        symbol_info
+        for symbol_id, symbol_info in metadata.api_symbols().items()
+        if symbol_id not in tested_symbols
         and symbol_info.source_file is not ...
-        and not isinstance(symbol.value, type)
+        and not isinstance(symbol_info.value, type)
+        and not symbol_info.name.endswith(".__repr__")
     )
 
     # Count test results.
@@ -107,6 +108,7 @@ def main(
         logger.separate(1, forced=True)
 
     if untested_symbols:
+        # Log all symbols missing inside `testing.subjects` decorators.
         logger.write(
             fmts.underlined_title(
                 "Missing TESTS for the following public symbols "
@@ -114,9 +116,9 @@ def main(
             )
         )
 
-        for symbol, symbol_info in untested_symbols:
-            logger.write(f"    name: {symbol.name}")
-            logger.write(f"    type: {type(symbol.value).__qualname__}")
+        for symbol_info in untested_symbols:
+            logger.write(f"    name: {symbol_info.name}")
+            logger.write(f"    type: {type(symbol_info.value).__qualname__}")
             logger.write(f"    source_file: {symbol_info.source_file}")
             logger.write(f"    header_files: {symbol_info.header_files}")
             logger.write(f"    has_docstring: {symbol_info.has_docstring}")
@@ -126,8 +128,8 @@ def main(
         # Log blank space.
         logger.separate(1, forced=True)
 
-    # The exit code of the program should be 0 (everything ok) if all tests passed and
-    # there were no discovery errors.
+    # The exit code of the program should be 0 (everything ok) if all tests passed,
+    # there were no discovery errors and all symbols were tested.
     return int(
         any(t.exception is not None for t in tests)
         or bool(discovery_errors)
