@@ -20,7 +20,8 @@ TEST_MODULE_JOIN = f"{TEST_DIRECTORY_NAME}."
 
 # When tests are decorated using the `tag` function, they are given an attribute called
 # `TAGS_ATTRIBUTE` with a `set` of tags as its value.
-TAGS_ATTRIBUTE = "testing-tags"
+TAGS_ATTRIBUTE = "aamm-testing-tags"
+SUBJECTS_ATTRIBUTE = "aamm-testing-subjects"
 
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
@@ -31,12 +32,13 @@ class Test:
     """A simple data structure to store test information and results."""
 
     run: Callable
-    module_path: str = None
-    home_path: str = None
-    suite_name: str = None
-    test_name: str = None
-    tags: frozenset = None
-    test_duration: float = None
+    module_path: str = ""
+    home_path: str = ""
+    suite_name: str = ""
+    test_name: str = ""
+    tags: frozenset = frozenset()
+    subjects: frozenset[int] = frozenset()
+    test_duration: float = float("nan")
     exception: Exception = None
 
     def __lt__(self, other) -> bool:
@@ -76,8 +78,8 @@ test_suite_registry: set[TestSuiteMeta] = set()
 class FakeTestSuite:
     """Main class of the `testing` subpackage."""
 
-    home_path = None
-    module_path = None
+    home_path = ""
+    module_path = ""
 
     def after(self):
         """Run after each test in its respective test suite (Even if test failed)."""
@@ -101,6 +103,7 @@ class FakeTestSuite:
                         home_path=cls.home_path,
                         suite_name=cls.__qualname__,
                         test_name=test_name,
+                        subjects=test.__dict__.get(SUBJECTS_ATTRIBUTE, frozenset()),
                         tags=test.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
                     )
                 )
@@ -177,6 +180,16 @@ def is_test_file(path: str) -> str | None:
         and module_exists ^ package_exists
     ):
         return module_path if module_exists else fs.directory(package_path)
+
+
+def subjects(*subjects: tuple) -> Callable:
+    """Store `subjects` under a `SUBJECTS_ATTRIBUTE` attribute in the decorated test."""
+
+    def decorator(test: Callable) -> Callable:
+        setattr(test, SUBJECTS_ATTRIBUTE, frozenset(map(id, subjects)))
+        return test
+
+    return decorator
 
 
 def tag(*tags: tuple[Hashable]) -> Callable:

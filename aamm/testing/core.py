@@ -10,6 +10,7 @@ from aamm._.testing.testsuite import (
     TestSuiteMeta,
     is_test_file,
     main,
+    subjects,
     tag,
     test_file,
     test_suite_registry,
