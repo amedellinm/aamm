@@ -1,8 +1,7 @@
 from collections.abc import Container
 from contextlib import contextmanager
+from operator import le, lt
 from typing import Any, Callable
-
-from aamm.testing import validate
 
 # / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
 
@@ -46,10 +45,15 @@ def between(
     include_lower: bool = True,
     include_upper: bool = True,
 ):
-    assertion = validate.between(value, lower, upper, include_lower, include_upper)
+    """Check `value` is between `lower` and `upper`."""
+    l = le if include_lower else lt
+    r = le if include_upper else lt
+    assertion = l(lower, value) and r(value, upper)
+
     l = 1 + include_lower
     r = 1 + include_upper
     error_msg = f"assert {lower!r} {'<='[:l]} {value!r} {'<='[:r]} {upper!r}"
+
     _assertion(assertion, error_msg)
 
 
