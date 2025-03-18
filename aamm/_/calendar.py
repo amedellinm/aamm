@@ -208,14 +208,6 @@ class YearMonth(DateValue):
     def __repr__(self) -> str:
         return f"{type(self).__qualname__}({self.year}, {self.month})"
 
-    def current_month() -> int:
-        """Return today's month."""
-        return Date.today().month
-
-    def current_year() -> int:
-        """Return today's year."""
-        return Date.today().year
-
     @classmethod
     def from_date(cls, date: Date) -> Self:
         """Construct from an object with year and month properties."""
@@ -273,18 +265,6 @@ class YearWeek(DateValue):
 
     def __repr__(self) -> str:
         return f"{type(self).__qualname__}({self.year}, {self.week})"
-
-    def current_month() -> int:
-        """Return today's isomonth."""
-        return Date.today().isocalendar().month
-
-    def current_week() -> int:
-        """Return today's isoweek."""
-        return Date.today().isocalendar().week
-
-    def current_year() -> int:
-        """Return today's isoyear."""
-        return Date.today().isocalendar().year
 
     @classmethod
     def from_date(cls, date: Date) -> Self:
