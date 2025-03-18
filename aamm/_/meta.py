@@ -183,12 +183,8 @@ class ReadOnlyProperty:
         self.display_name = name
         self.private_name = "_" + name
 
-    def __get__(self, obj, obj_type: type = None):
-        if obj is None:
-            from aamm.logging.formats import attribute_error
-
-            raise AttributeError(attribute_error(obj_type, self.display_name))
-        return getattr(obj, self.private_name)
+    def __get__(self, obj, _: type = None):
+        return self if obj is None else getattr(obj, self.private_name)
 
     def __set__(self, obj, value):
         if hasattr(obj, self.private_name):
