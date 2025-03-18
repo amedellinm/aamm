@@ -1,14 +1,12 @@
-import io
 import traceback as tb
-from collections.abc import Container
+from collections.abc import Container, Sequence
 from itertools import chain
 from traceback import extract_tb
 from types import TracebackType
-from typing import Any
+from typing import Any, Literal
 
 from aamm import file_system as fs
 from aamm.logging import Logger
-from aamm.meta import module_identifier
 
 
 def qualname(obj: object) -> str:
@@ -61,6 +59,29 @@ def reprlike(obj: object, *attrs: tuple[str]) -> str:
     return f"{Type}({args})"
 
 
+def table(
+    *columns: tuple[Sequence[str]],
+    alignment: Literal["left", "right"] = "left",
+    spacing: str = "  ",
+    newline: str = "\n",
+):
+    if alignment == "left":
+        just = str.ljust
+    elif alignment == "right":
+        just = str.rjust
+    else:
+        raise ValueError(
+            f"expected 'left' or 'right' for `alignment`, got {alignment}"
+        )
+
+    alignments = tuple(map(max, map(lambda column: map(len, column), columns)))
+
+    return newline.join(
+        spacing.join(just(item, alignment) for item, alignment in zip(row, alignments))
+        for row in zip(*columns)
+    )
+
+
 def traceback(
     arg: Exception | TracebackType | tb.StackSummary,
     ignore_paths=Container[str],
@@ -74,7 +95,7 @@ def traceback(
         stack = arg
 
     padding = len(str(max(f.lineno for f in stack) + lines_around))
-    logger = Logger(io.StringIO())
+    logger = Logger.from_string_io()
 
     for frame in stack:
         if frame.filename in ignore_paths:
@@ -100,12 +121,12 @@ def traceback(
                 marker = "-->" if line_number == frame.lineno else "   "
 
                 logger.write(
-                    f"{marker} {str(line_number).rjust(padding)}: {line.rstrip()}"
+                    f"{marker} {str(line_number).rjust(padding)}: {line}", end=""
                 )
 
         logger.separate(1)
 
-    return logger.stream.getvalue()
+    return logger.stream.getvalue().rstrip()
 
 
 def type_error(obtained: object, expected: type | tuple[type]) -> str:
