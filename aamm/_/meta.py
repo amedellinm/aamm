@@ -2,13 +2,14 @@ import importlib.util
 import inspect
 import io
 import sys
-from collections import Counter
+from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import wraps
 from types import GenericAlias, ModuleType
 from typing import Any, Callable, Literal
 
 from aamm import file_system as fs
+from aamm import string
 
 
 @contextmanager
@@ -33,6 +34,43 @@ def import_path(path: str) -> ModuleType:
 
 def module_identifier(path: str) -> str:
     return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
+
+
+def public_members(child_class: type) -> Iterator[tuple[str, Any, type]]:
+    """
+    Yield tuples of `(member_name, member, original_class)`.
+
+    The value of `member_name` is computed as: `f"{class_name}.{attr_name}"`, where
+    `class_name` is the first `class` in the MRO that defines/redefines `attr_name`.
+
+    There are several ways in which a member can be never yielded:
+        * If its name is dunder (e.g. "__attr_name__") but the member itself is not a
+          callable.
+        * If its name doesn't start with a letter (case-insensitive).
+        * if `class_name` turns out to be `object`.
+
+    """
+
+    # Iterate over all members of the class, including inherited.
+    for name in dir(child_class):
+        # Iterate over the MRO to find the last class that defined/redefined `name`.
+        for base in child_class.mro():
+            # Skip `name` if it does not resemble that of a public member.
+            is_dunder = string.is_dunder(name)
+            if not (name[:1].isalpha() or is_dunder):
+                break
+
+            # Unlike the output of `dir`, `__dict__` contains only the symbols local to
+            # the class. Which makes it ideal for telling inherited symbols apart.
+            if name in base.__dict__:
+                value = getattr(base, name)
+                # Ignore `name` if it originated from `object`.
+                if base is not object and (callable(value) or not is_dunder):
+                    if inspect.ismethod(value):
+                        yield f"{base.__qualname__}.{name}.__func__", value.__func__, base
+                    else:
+                        yield f"{base.__qualname__}.{name}", value, base
+                break
 
 
 def typehint_handlers(cases: dict[type | GenericAlias, Callable]) -> Callable:
