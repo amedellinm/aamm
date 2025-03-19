@@ -73,6 +73,57 @@ class TestMeta(testing.TestSuite):
         namespace.a
         asserts.equal(namespace._unused_names(), [])
 
+    @testing.subjects(meta.public_members)
+    def test_public_members(self):
+        class A:
+            class_variable = 1
+
+            def __hash__(self):
+                pass
+
+            def _method(self):
+                pass
+
+            @classmethod
+            def class_method(cls):
+                pass
+
+        class B(A):
+            def __init__(self):
+                pass
+
+            def method(self):
+                pass
+
+        obtained_names, obtained_objects, obtained_types = zip(*meta.public_members(B))
+
+        expected_names = [
+            "TestMeta.test_public_members.<locals>.A.__hash__",
+            "TestMeta.test_public_members.<locals>.B.__init__",
+            "TestMeta.test_public_members.<locals>.A.class_method.__func__",
+            "TestMeta.test_public_members.<locals>.A.class_variable",
+            "TestMeta.test_public_members.<locals>.B.method",
+        ]
+
+        for expected, obtained in zip(expected_names, obtained_names):
+            asserts.equal(expected, obtained)
+
+        expected_objects = [
+            A.__hash__,
+            B.__init__,
+            A.class_method.__func__,
+            A.class_variable,
+            B.method,
+        ]
+
+        for expected, obtained in zip(expected_objects, obtained_objects):
+            asserts.equal(expected, obtained)
+
+        expected_types = [A, B, A, A, B]
+
+        for expected, obtained in zip(expected_types, obtained_types):
+            asserts.equal(expected, obtained)
+
     @testing.subjects(
         meta.ReadOnlyProperty,
         meta.ReadOnlyProperty.__get__,

@@ -203,6 +203,7 @@ def tag(*tags: tuple[Hashable]) -> Callable:
 
 
 def test_file(path: str) -> str:
+    """Return the proper path to the test file corresponding to `path`."""
     leaf = (
         fs.name(fs.directory(path)) + ".py"
         if fs.leaf(path) == "__init__.py"
@@ -217,6 +218,7 @@ def test_file(path: str) -> str:
 def main(
     root: str, condition: Callable[[Test], bool]
 ) -> tuple[list[Test], dict[str, Exception]]:
+    """Discover, collect, filter, and run tests found under `root`."""
     discovery_errors = {}
 
     for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root):

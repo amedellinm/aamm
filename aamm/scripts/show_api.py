@@ -10,8 +10,8 @@ def main():
     logger = Logger.from_sys_stream("stdout")
 
     with fs.cwd_context(metadata.home):
-        for path in map(fs.relative, metadata.header_files):
-            logger.write(fmts.module_identifier(path))
+        for path in metadata.header_files:
+            logger.write(meta.module_identifier(path))
 
             try:
                 module = meta.import_path(path)

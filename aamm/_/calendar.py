@@ -5,6 +5,7 @@ from datetime import date as Date
 from datetime import datetime as DateTime
 from datetime import timedelta as TimeDelta
 from numbers import Number
+from typing import Literal
 
 import aamm.logging.formats as fmts
 from aamm.meta import ReadOnlyProperty
@@ -100,46 +101,64 @@ class DateValue:
     value = ReadOnlyProperty()
 
     def __add__(self, other: int) -> Self:
+        """Create a new instance with `value` equal to `self.value + other`."""
         if isinstance(other, int):
             return type(self)(self.value + other)
         raise TypeError(operand_error("+", self, other))
 
     def __eq__(self, other: Self | Number) -> bool:
+        """Test equality of type and value."""
         if isinstance(other, Number):
             return self.value == other
         return isinstance(other, type(self)) and self.value == other.value
 
     def __ge__(self, other: Self) -> bool:
+        """Compare using `self.value`."""
         return self.value >= other.value
 
     def __gt__(self, other: Self) -> bool:
+        """Compare using `self.value`."""
         return self.value > other.value
 
     def __hash__(self) -> int:
+        """Use `self.value`."""
         return self.value
 
     def __iadd__(self, other: int) -> Self:
+        """Fallback to `self.__add__`."""
         return self.__add__(other)
 
     def __isub__(self, other: int | Self) -> Self | int:
+        """Fallback to `self.__sub__`."""
         return self.__sub__(other)
 
     def __iter__(self) -> Iterator[Date]:
+        """Iterate with `self.__getitem__`."""
         return self[:]
 
     def __le__(self, other: Self) -> bool:
+        """Compare using `self.value`."""
         return self.value <= other.value
 
     def __lt__(self, other: Self) -> bool:
+        """Compare using `self.value`."""
         return self.value < other.value
 
     def __ne__(self, other: Self) -> bool:
+        """Compare using `self.value`."""
         return self.value != other.value
 
     def __str__(self) -> str:
+        """Cast to `int`, then to `str`."""
         return str(int(self))
 
     def __sub__(self, other: int | Self) -> Self | int:
+        """
+        Create a new instance with `value` equal to `self.value - other`.
+        If `other` is of the same type as `self`, return an `int` representing the
+        difference between them in the underlying unit.
+
+        """
         if isinstance(other, cls := type(self)):
             return self.value - other.value
         elif isinstance(other, int):
@@ -148,7 +167,7 @@ class DateValue:
 
     @classmethod
     def current(cls) -> Self:
-        """Return today's `cls`."""
+        """Return today's `cls` instance."""
         return cls.from_date(Date.today())
 
     def elapse(self, end: Self, delta: int = 1) -> Iterator[Self]:
@@ -177,6 +196,7 @@ class YearMonth(DateValue):
     is_valid_string = create_matcher(r"^\d{4}(0[1-9]|1[0-2])$")
 
     def __getitem__(self, subscript: int | slice) -> Date | Iterator[Date]:
+        """Return/Yield the dates of the month."""
         max_index = len(self)
 
         if isinstance(subscript, int):
@@ -194,6 +214,7 @@ class YearMonth(DateValue):
         raise TypeError(type_error(subscript, (int, slice)))
 
     def __init__(self, year: int, month: int = None) -> None:
+        """If `month is None`, set `self.value` to `year`."""
         if month is None:
             self.value = year
             return
@@ -202,9 +223,11 @@ class YearMonth(DateValue):
         self.value = 12 * year + month - 1
 
     def __int__(self) -> int:
+        """Concatenate year and month to form an `int`. The month is padded with a 0."""
         return 100 * self.year + self.month
 
     def __len__(self) -> int:
+        """Return the number of days in the month."""
         return monthrange(self.year, self.month)[1]
 
     def __repr__(self) -> str:
@@ -239,6 +262,7 @@ class YearWeek(DateValue):
     """Date-like object, holds a pair year-week."""
 
     def __getitem__(self, subscript: int | slice) -> Date | Iterator[Date]:
+        """Return/Yield the dates of the week."""
         if isinstance(subscript, int):
             if -7 <= subscript < 7:
                 subscript += (subscript < 0) * 7 + 1
@@ -260,9 +284,11 @@ class YearWeek(DateValue):
         self.value = (Date.fromisocalendar(year, week, 1).toordinal() - 1) // 7
 
     def __int__(self) -> int:
+        """Concatenate year and week to form an `int`. The week is padded with a 0."""
         return 100 * self.year + self.week
 
-    def __len__(self) -> int:
+    def __len__(self) -> Literal[7]:
+        """Return the constant `7`."""
         return 7
 
     def __repr__(self) -> str:

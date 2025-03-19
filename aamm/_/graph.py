@@ -23,6 +23,7 @@ def breadth_first(root: Any, expand: Callable[[Any], Iterator[Any]]) -> Iterator
 def breadth_first_paths(
     root: Any, expand: Callable[[Any], Iterator[Any]], sentinel: Any = ...
 ) -> Iterator[list[Any]]:
+    """Like `breadth_first` but yield paths instead of single nodes."""
     path = []
     queue = deque([root])
     known = set()
@@ -65,6 +66,7 @@ def depth_first(root: Any, expand: Callable[[Any], Iterator[Any]]) -> Iterator[A
 def depth_first_paths(
     root: Any, expand: Callable[[Any], Iterator[Any]], sentinel: Any = ...
 ) -> Iterator[list[Any]]:
+    """Like `depth_first` but yield paths instead of single nodes."""
     path = []
     queue = [root]
     known = set()

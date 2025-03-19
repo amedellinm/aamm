@@ -25,6 +25,11 @@ def _assertion(assertion: bool, error_msg: str):
 
 @contextmanager
 def assert_many():
+    """
+    Collect exceptions raised via the `asserts` module and raise them as a group at
+    the end of the context.
+
+    """
     global _exceptions, _throw
     _throw = False
     try:
@@ -58,15 +63,18 @@ def between(
 
 
 def contain(container: Container, item: Any):
+    """Assert `item in container`."""
     _assertion(item in container, f"assert {item!r} in {container!r}")
 
 
 def equal(a, b):
+    """Assert `a == b`."""
     _assertion(a == b, f"assert {a!r} == {b!r}")
 
 
 @contextmanager
 def exception_context(exception: Exception):
+    """Assert `exception` is raised within the context."""
     try:
         yield
     except exception:
@@ -76,42 +84,52 @@ def exception_context(exception: Exception):
 
 
 def false(a):
+    """Assert `not a`."""
     _assertion(not a, f"assert not bool({a!r})")
 
 
 def greater_equal(a, b):
+    """Assert `a >= b`."""
     _assertion(a >= b, f"assert {a!r} >= {b!r}")
 
 
 def greater_than(a, b):
+    """Assert `a > b`."""
     _assertion(a > b, f"assert {a!r} > {b!r}")
 
 
 def identical(a, b):
+    """Assert `a is b`."""
     _assertion(a is b, f"assert {a!r} is {b!r}")
 
 
 def less_equal(a, b):
+    """Assert `a <= b`."""
     _assertion(a <= b, f"assert {a!r} <= {b!r}")
 
 
 def less_than(a, b):
+    """Assert `a < b`."""
     _assertion(a < b, f"assert {a!r} < {b!r}")
 
 
 def not_contain(container: Container, item: Any):
+    """Assert `item not in container`."""
     _assertion(item not in container, f"assert {item!r} not in {container!r}")
 
 
 def not_equal(a, b):
+    """Assert `a != b`."""
     _assertion(a != b, f"assert {a!r} != {b!r}")
 
 
 def not_identical(a, b):
+    """Assert `a is not b`."""
     _assertion(a is not b, f"assert {a!r} is not {b!r}")
 
 
 def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
+    """Assert `exception` is raised when calling `function(*args, **kwargs)`."""
     try:
         function(*args, **kwargs)
     except exception:
@@ -121,4 +139,5 @@ def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
 
 
 def true(a):
+    """Assert `bool(a)`."""
     _assertion(bool(a), f"assert bool({a!r})")

@@ -13,10 +13,13 @@ def main():
     logger = Logger.from_sys_stream("stdout")
 
     symbols = tuple(
-        (symbol, symbol_info)
-        for symbol, symbol_info in metadata.api_symbols().items()
+        symbol_info
+        for symbol_info in metadata.api_symbols().values()
         if not (symbol_info.has_docstring or symbol_info.source_file is ...)
     )
+
+    if not symbols:
+        return 0
 
     logger.write(
         fmts.underlined_title(
@@ -25,9 +28,9 @@ def main():
         )
     )
 
-    for symbol, symbol_info in symbols:
-        logger.write(f"    name: {symbol.name}")
-        logger.write(f"    type: {type(symbol.value).__qualname__}")
+    for symbol_info in symbols:
+        logger.write(f"    name: {symbol_info.name}")
+        logger.write(f"    type: {type(symbol_info.value).__qualname__}")
         logger.write(f"    source_file: {symbol_info.source_file}")
         logger.write(f"    header_files: {symbol_info.header_files}")
         logger.write(f"    has_docstring: {symbol_info.has_docstring}")

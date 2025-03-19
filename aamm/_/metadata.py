@@ -2,7 +2,7 @@ import ast
 import tomllib
 from dataclasses import dataclass
 from inspect import getdoc
-from types import EllipsisType
+from types import EllipsisType, MemberDescriptorType
 from typing import Any
 
 from aamm import file_system as fs
@@ -55,7 +55,7 @@ header_files: tuple[str] = tuple(header_files)
 fs.cd(cwd)
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class SymbolInfo:
     name: str
     value: Any
@@ -121,6 +121,9 @@ def api_symbols() -> dict[int, SymbolInfo]:
 
                 # Repeat the process above for the children of the class.
                 for key, val, base in meta.public_members(val):
+                    if isinstance(val, MemberDescriptorType):
+                        continue
+
                     source_file = base.__module__ and path_from_module(base.__module__)
                     has_docstring = (
                         ... if not callable(val) else getdoc(val) is not None

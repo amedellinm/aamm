@@ -96,6 +96,7 @@ class Logger:
 
     @classmethod
     def from_string_io(cls) -> Self:
+        """Use a `io.StringIO` to construct `cls`."""
         return cls(io.StringIO())
 
     @classmethod

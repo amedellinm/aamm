@@ -30,6 +30,7 @@ def cwd() -> str:
 
 @contextmanager
 def cwd_context(path: str):
+    """Temporarily change the CWD."""
     CWD = cwd()
     cd(path)
     try:
@@ -165,6 +166,7 @@ def resolve(path: str) -> str:
 
 
 def segment(path: str, index: int) -> str:
+    """Return the path segment at `index` position."""
     if index == -1:
         return leaf(path)
     return path.split(SEP)[index]

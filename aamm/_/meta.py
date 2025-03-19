@@ -33,6 +33,7 @@ def import_path(path: str) -> ModuleType:
 
 
 def module_identifier(path: str) -> str:
+    """Return an import-statement-valid module identifier from a path."""
     return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
 
 
@@ -208,13 +209,20 @@ class ReadOnlyProperty:
     """Allow one write operation, then become read-only."""
 
     def __set_name__(self, _, name):
+        """Set private and display names."""
         self.display_name = name
         self.private_name = "_" + name
 
     def __get__(self, obj, _: type = None):
+        """
+        Return the value under `self.private_name` if instance, or the descriptor itself
+        if class.
+
+        """
         return self if obj is None else getattr(obj, self.private_name)
 
     def __set__(self, obj, value):
+        """Write to the attribute. Works only once."""
         if hasattr(obj, self.private_name):
             raise AttributeError(f"property '{self.display_name}' is read-only")
         setattr(obj, self.private_name, value)

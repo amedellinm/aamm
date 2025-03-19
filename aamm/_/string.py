@@ -50,22 +50,22 @@ def line_formatter(string: str, formatter: Callable[[str, int], str]) -> str:
     return re.subn(r".+(\n|$)", repl, string)[0]
 
 
-is_dunder = create_matcher(r"^__[a-zA-Z0-9_]+__$")
+is_dunder = create_matcher(r"^__[a-zA-Z0-9_]*__$")
 
 
-is_camelcase = create_matcher(r"^[a-z]+(?:[A-Z][a-z]+)+$")
+is_camelcase = create_matcher(r"^[a-z]+([A-Z][a-z]+)*[A-Z]?$")
 
 
-is_lowercase = str.islower
+is_lowercase = create_matcher(r"^[a-z]+$")
 
 
-is_snakecase = create_matcher(r"^[a-z]+(?:_[a-z]+)+$")
+is_snakecase = create_matcher(r"^[a-z]+(_[a-z]+)+$")
 
 
-is_titlecase = str.istitle
+is_titlecase = create_matcher(r"^([A-Z][a-z]+)+[A-Z]?$")
 
 
-is_uppercase = str.isupper
+is_uppercase = create_matcher(r"^[A-Z]+$")
 
 
 def is_utf8_valid(string: str) -> bool:
