@@ -79,15 +79,23 @@ def glob(
     pattern: str = "**",
     root: str = None,
     recursive: bool = True,
+    with_root: bool = False,
     include_hidden: bool = True,
 ) -> Iterator[str]:
     """Yield paths matching `pattern`."""
-    return iglob(
+    root = cwd() if root is None else root
+
+    paths = iglob(
         pattern,
-        root_dir=cwd() if root is None else root,
+        root_dir=root,
         recursive=recursive,
         # include_hidden=include_hidden,
     )
+
+    if not with_root:
+        return paths
+
+    return (join(root, path) for path in paths)
 
 
 def has_extension(path: str, extension: str = None) -> bool:
@@ -150,9 +158,9 @@ def normalize(path: str) -> str:
     return SEP.join(part for part in path.split(SEP) if part).strip(SEP)
 
 
-def relative(path: str) -> str:
+def relative(path: str, relative_to: str = None) -> str:
     """Return `path` relative to the cwd."""
-    return os.path.relpath(path)
+    return os.path.relpath(path, relative_to)
 
 
 def remove_extension(path: str) -> str:
