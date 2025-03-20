@@ -8,7 +8,7 @@ from typing import Any
 from aamm import file_system as fs
 from aamm import meta, metadata
 from aamm.graph import depth_first
-from aamm.testing.core import is_test_file
+from aamm.testing.core import test_file
 
 # The folder in which the library lives.
 home = fs.up(__file__, 3)
@@ -25,9 +25,6 @@ with open("pyproject.toml", "rb") as stream:
 
 # The top level folder of the library.
 root = fs.join(home, name)
-
-# A tuple with all the test files in the library.
-test_files: tuple[str] = tuple(filter(is_test_file, fs.glob(f"{name}/**/*.py", home)))
 
 # A tuple with all the source files in the library.
 source_files: tuple[str] = tuple(fs.glob(f"{name}{fs.SEP}_/**/*.py"))
@@ -50,6 +47,10 @@ for directory in depth_first(root, expand):
 
 # A tuple with all the header files in the library.
 header_files: tuple[str] = tuple(header_files)
+
+# A tuple with all the test files in the library.
+test_files: tuple[str] = tuple(map(test_file, header_files))
+
 
 # Resume CWD.
 fs.cd(cwd)
@@ -140,6 +141,7 @@ def api_symbols() -> dict[int, SymbolInfo]:
         # them, to compute fields such as the source file, it is necessary to read the
         # files and follow the imports using the `ast` module.
         queue = [header_file]
+        known = set()
 
         while queue:
             try:
@@ -159,8 +161,9 @@ def api_symbols() -> dict[int, SymbolInfo]:
 
                 source_file = path_from_module(node.module)
                 # `source_file` is `...` when the module is external to the library.
-                if source_file is not ...:
+                if not (source_file is ... or source_file in known):
                     # Add imported file to the queue to follow the chain.
+                    known.add(source_file)
                     queue.append(source_file)
 
                 for symbol in node.names:
