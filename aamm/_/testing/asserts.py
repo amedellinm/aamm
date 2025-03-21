@@ -24,7 +24,7 @@ def _assertion(assertion: bool, error_msg: str):
 
 
 @contextmanager
-def assert_many():
+def assert_many(message: str = "assertion error(s)"):
     """
     Collect exceptions raised via the `asserts` module and raise them as a group at
     the end of the context.
@@ -37,7 +37,7 @@ def assert_many():
         if len(_exceptions) == 1:
             raise _exceptions[0]
         if len(_exceptions) > 1:
-            raise ExceptionGroup("assertion error(s)", _exceptions)
+            raise ExceptionGroup(message, _exceptions)
     finally:
         _throw = True
         _exceptions.clear()
