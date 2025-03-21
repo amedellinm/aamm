@@ -9,25 +9,24 @@ def main():
 
     logger = Logger.from_sys_stream("stdout")
 
-    with fs.cwd_context(metadata.home):
-        for path in metadata.header_files:
-            logger.write(meta.module_identifier(path))
+    for path in metadata.header_files:
+        logger.write(meta.module_identifier(fs.relative(path, metadata.home)))
 
-            try:
-                module = meta.import_path(path)
-            except Exception as e:
-                # Log exception.
-                logger.write("   ", fmts.exception_message(e))
-            else:
-                # Log symbols.
-                for key, value in vars(module).items():
-                    if key[:1].isalpha():
-                        logger.write(
-                            "   ",
-                            fmts.contents_table_row(key, fmts.qualname(value), 70),
-                        )
+        try:
+            module = meta.import_path(path)
+        except Exception as e:
+            # Log exception.
+            logger.write("   ", fmts.exception_message(e))
+        else:
+            # Log symbols.
+            for key, value in vars(module).items():
+                if key[:1].isalpha():
+                    logger.write(
+                        "   ",
+                        fmts.contents_table_row(key, fmts.qualname(value), 70),
+                    )
 
-            logger.separate(1)
+        logger.separate(1)
 
 
 if __name__ == "__main__":
