@@ -92,7 +92,7 @@ def table(
 
 def traceback(
     arg: Exception | TracebackType | tb.StackSummary,
-    ignore_paths: Container[str],
+    ignore_paths: Container[str] = (),
     lines_around: int = 6,
 ) -> str:
     """Write the traceback of an exception in a more human-friendly way."""
