@@ -1,3 +1,4 @@
+import io
 import sys
 
 from aamm import testing
@@ -28,6 +29,20 @@ class TestLogger(testing.TestSuite):
         logger.write("A", "B", "C")
         asserts.equal(logger.stream.getvalue(), "AsepBsepCend")
 
+    @testing.subjects(Logger.__init__, Logger.unmanaged)
+    def test_constructor(self):
+        stream = io.StringIO()
+        assert not stream.closed
+        logger = Logger(stream)
+        del logger
+        assert stream.closed
+
+        stream = io.StringIO()
+        assert not stream.closed
+        logger = Logger(stream, unmanaged=True)
+        del logger
+        assert not stream.closed
+
     @testing.subjects(Logger.FLUSH)
     def test_flush(self):
         logger = Logger.from_string_io()
@@ -37,11 +52,31 @@ class TestLogger(testing.TestSuite):
         logger.write("c")
         asserts.false(logger.stream.getvalue())
 
+    @testing.subjects(Logger.DIR_NAME, Logger.from_current_file.__func__)
+    def test_from_current_file(self):
+        logger = Logger.from_current_file("r")
+        asserts.equal("Test log file\n", logger.stream.read())
+
     @testing.subjects(Logger.from_sys_stream.__func__)
     def test_from_sys_stream(self):
         asserts.identical(sys.stdout, Logger.from_sys_stream().stream)
         asserts.identical(sys.stdout, Logger.from_sys_stream("stdout").stream)
         asserts.identical(sys.stderr, Logger.from_sys_stream("stderr").stream)
+
+    @testing.subjects(Logger.sep_registry, Logger.separate)
+    def test_separate(self):
+        logger = Logger.from_string_io()
+        stream = logger.stream
+        asserts.contain(Logger.sep_registry, stream)
+
+        logger.separate()
+        logger.separate(1)
+        logger.separate(4)
+        asserts.equal(stream.getvalue(), "\n\n")
+        logger.separate()
+        asserts.equal(stream.getvalue(), "\n\n")
+        logger.separate(forced=True)
+        asserts.equal(stream.getvalue(), "\n\n\n\n")
 
     @testing.subjects(Logger.undo)
     def test_undo(self):
