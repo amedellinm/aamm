@@ -7,26 +7,101 @@ import aamm.testing.core as testing
 from aamm import file_system as fs
 from aamm import meta, metadata
 from aamm._.testing import asserts
-from aamm.iterable import group_by, split_iter
+from aamm.iterable import group_by
 from aamm.logging import Logger
 from aamm.string import indent
 
 
-def main(
-    root: str = None, test_condition: Callable[[testing.Test], bool] = lambda *_: True
-) -> int:
+def main(test_condition: Callable[[testing.Test], bool] = lambda *_: True) -> int:
     """Run tests and log the results to the standard out."""
 
-    # Run the main test routine. This returns a list of executed tests plus a table of
-    # errors encountered during test discovery (if any).
-    tests, discovery_errors = testing.main(
-        metadata.home if root is None else root, test_condition
+    logger = Logger.from_sys_stream("stdout")
+    # logger.enabled = False
+    logger.separate()
+
+    # Discover tests.
+    discovery_errors = {}
+
+    for path in metadata.test_files:
+        try:
+            # Importing a file containing subclasses of `testing.TestSuit` loads
+            # them to `testing.test_suite_registry`.
+            meta.import_path(path)
+        except Exception as e:
+            # Save discovery error.
+            discovery_errors[path] = e
+
+    # Log header.
+    test_count = sum(ts.count_tests() for ts in testing.TestSuite.registry)
+    logger.write(
+        fmts.underlined_title(f"Running {test_count} test{'s'*bool(test_count)}")
     )
 
-    # Make module paths relative to the package's home.
-    with fs.cwd_context(metadata.home):
-        for test in tests:
-            test.module_path = fs.relative(test.module_path)
+    tests = []
+
+    # Group test suites by module path.
+    module_groups: dict[str, tuple[testing.TestSuite]] = group_by(
+        (fs.relative(ts.module_path, metadata.home), ts)
+        for ts in testing.TestSuite.registry
+    )
+
+    for module_path, test_suites in sorted(module_groups.items()):
+        # Log module info.
+        module_identifier = meta.module_identifier(module_path)
+        test_count = sum(ts.count_tests() for ts in test_suites)
+        logger.write(module_identifier, f"({test_count:,})")
+
+        for name, test_suite in sorted((ts.__qualname__, ts) for ts in test_suites):
+            # Log test suite info.
+            logger.write(f"    {name} ({test_suite.count_tests():,})")
+
+            for test in test_suite.run(test_condition):
+                tests.append(test)
+
+                # Log test info.
+                test_name = test.test.__name__
+                time = test.test_duration * 1_000
+                logger.write(
+                    indent(fmts.contents_table_row(test_name, f"{time:,.3f} ms"), 2),
+                    "  *" * (test.exception is not None),
+                )
+
+                if test.exception is None:
+                    continue
+
+                # Extract the traceback without the test runner frame.
+                stack = traceback.extract_tb(test.exception.__traceback__)[1:]
+
+                msg = fmts.traceback(stack, ignore_paths={asserts.__file__})
+                msg = indent(msg, 4)
+                error_message = fmts.exception_message(test.exception)
+
+                # Log error info.
+                logger.write(indent(error_message, 3))
+                logger.write(msg)
+
+                logger.separate(1, flush=False)
+
+            logger.undo(ignore_empty=True)
+            logger.separate(1, flush=False, forced=True)
+
+    logger.undo(ignore_empty=True)
+    logger.separate(forced=True)
+
+    # Log any discovery errors. These errors occurred not during actual test execution
+    # but while discovering and collecting them. This means tests didn't fail because
+    # they didn't run in the first place; which is equally as bad.
+    if discovery_errors:
+        logger.write(fmts.underlined_title("During test discovery"))
+
+        for exception in discovery_errors.values():
+            # Index 4 skips `testing` stack frames.
+            stack = traceback.extract_tb(exception.__traceback__)[4:]
+            logger.write(fmts.exception_message(exception))
+            logger.write(indent(fmts.traceback(stack)))
+            logger.separate(1)
+
+        logger.separate(1, forced=True)
 
     # Track untested symbols.
     tested_symbols = set(chain.from_iterable(test.subjects for test in tests))
@@ -39,74 +114,6 @@ def main(
         and not symbol_info.name.endswith(".__repr__")
     )
 
-    # Count test results.
-    total_test_count = len(tests)
-    successful_test_count = sum(test.exception is None for test in tests)
-
-    # Initialize an stdout logger.
-    logger = Logger.from_sys_stream("stdout").separate()
-
-    # Log header.
-    logger.write(
-        fmts.underlined_title(
-            f"Ran {successful_test_count:,}/{total_test_count:,} tests successfully"
-        )
-    )
-
-    # Group tests based on the module they evaluate.
-    for module_path, tests in group_by((t.module_path, t) for t in tests).items():
-        module_identifier = meta.module_identifier(module_path)
-
-        successful_tests, failed_tests = split_iter(
-            tests, lambda test: test.exception is None
-        )
-        time = sum(t.test_duration for t in successful_tests) * 1000
-
-        # Log module line.
-        logger.write(
-            fmts.contents_table_row(
-                module_identifier,
-                f"{len(successful_tests):,}|{len(tests):,} ({time:,.2f} ms)",
-                102,
-            )
-        )
-
-        # Log failed tests information.
-        for suite, tests in group_by((t.suite_name, t) for t in failed_tests).items():
-            logger.write(indent(suite))
-
-            for t in tests:
-                # Extract the traceback without the test runner frame.
-                stack = traceback.extract_tb(t.exception.__traceback__)[1:]
-
-                msg = fmts.traceback(stack, ignore_paths={asserts.__file__})
-                msg = indent(msg, 3)
-                error_message = fmts.exception_message(t.exception)
-
-                logger.write(indent(f"{t.test_name} -- {error_message}", 2))
-                logger.write(msg)
-
-                logger.separate(1, flush=False)
-
-    # Log blank space.
-    logger.undo(ignore_empty=True)
-    logger.separate(forced=True)
-
-    # Log any discovery errors. These errors occurred not during actual test execution
-    # but while discovering and collecting them. This means tests didn't fail because
-    # they didn't run in the first place; which is equally as bad.
-    if discovery_errors:
-        logger.write(fmts.underlined_title("During test discovery"))
-
-        for exception in discovery_errors.values():
-            stack = traceback.extract_tb(exception.__traceback__)[4:]
-            logger.write(fmts.exception_message(exception))
-            logger.write(indent(fmts.traceback(stack)))
-            logger.separate(1)
-
-        # Log blank space.
-        logger.separate(1, forced=True)
-
     if untested_symbols:
         # Log all symbols missing inside `testing.subjects` decorators.
         logger.write(
@@ -116,16 +123,28 @@ def main(
             )
         )
 
-        for symbol_info in untested_symbols:
-            logger.write(f"    name: {symbol_info.name}")
-            logger.write(f"    type: {type(symbol_info.value).__qualname__}")
-            logger.write(f"    source_file: {symbol_info.source_file}")
-            logger.write(f"    header_files: {symbol_info.header_files}")
-            logger.write(f"    has_docstring: {symbol_info.has_docstring}")
-            logger.write(f"    is_child: {symbol_info.is_child}")
+        # Group symbols by source file.
+        source_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
+            (si.source_file, si) for si in untested_symbols
+        )
+
+        # Compute the number of chars to left align the table.
+        alignment = max(map(len, (si.name for si in untested_symbols)))
+
+        for source_file, symbols_info in source_file_groups.items():
+            # Log symbol info.
+            logger.write(f"{source_file} ({len(symbols_info)})")
+            logger.write(
+                indent(
+                    fmts.table(
+                        [si.name.ljust(alignment) for si in symbols_info],
+                        [", ".join(si.header_files) for si in symbols_info],
+                    )
+                )
+            )
+
             logger.separate(1)
 
-        # Log blank space.
         logger.separate(1, forced=True)
 
     # The exit code of the program should be 0 (everything ok) if all tests passed,

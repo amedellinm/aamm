@@ -1,85 +1,43 @@
 import random
 import time
 import traceback
-from collections.abc import Callable, Hashable
+from collections.abc import Callable, Hashable, Iterator
 from dataclasses import dataclass
+from itertools import chain
 
 from aamm import file_system as fs
 from aamm import meta
 from aamm.string import right_replace
 
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
-
 TEST_DIRECTORY_NAME = "__tests"
 TEST_PREFIX = "test_"
-
-# Some shorthands.
 TEST_PATH_JOIN = f"{TEST_DIRECTORY_NAME}{fs.SEP}"
-TEST_MODULE_JOIN = f"{TEST_DIRECTORY_NAME}."
-
-# When tests are decorated using the `tag` function, they are given an attribute called
-# `TAGS_ATTRIBUTE` with a `set` of tags as its value.
 TAGS_ATTRIBUTE = "aamm-testing-tags"
 SUBJECTS_ATTRIBUTE = "aamm-testing-subjects"
 
 
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
-
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class Test:
     """A simple data structure to store test information and results."""
 
-    run: Callable
-    module_path: str = ""
-    home_path: str = ""
-    suite_name: str = ""
-    test_name: str = ""
-    tags: frozenset = frozenset()
-    subjects: frozenset[int] = frozenset()
+    test_suite: "TestSuite" = None
+    test: Callable[["TestSuite"], None] = None
+    exception: Exception = ...
     test_duration: float = float("nan")
-    exception: Exception = None
-
-    def __lt__(self, other) -> bool:
-        a = (self.module_path, self.suite_name, self.test_name)
-        b = (other.module_path, other.suite_name, other.test_name)
-        return a < b
+    subjects: frozenset[int] = frozenset()
+    tags: frozenset = frozenset()
 
 
-class TestSuiteMeta(type):
-    def __init__(cls, *args):
-        super().__init__(*args)
-
-        # The `TestSuite` class is a special case only meant for inheritance. It does
-        # it does not contain tests, so the logic after this condition shouldn't be
-        # executed.
-
-        if cls.__name__ == "TestSuite":
-            return
-
-        cls.home_path = fs.current_file(stack_index=1)
-
-        # To enforce good practices, an exception is thrown if a test suite is declared
-        # in a file with an unexpected path format.
-        cls.module_path = is_test_file(cls.home_path)
-        if not cls.module_path:
-            raise RuntimeError(
-                f"{cls.__qualname__} is not instantiated inside a valid test file"
-            )
-
-        test_suite_registry.add(cls)
-
-
-# Upon declaring a `TestSuite` subclass, a reference to it is saved in this `set`.
-test_suite_registry: set[TestSuiteMeta] = set()
-
-
-class FakeTestSuite:
+class TestSuite:
     """Main class of the `testing` subpackage."""
 
-    home_path = ""
-    module_path = ""
+    # Upon declaring a `TestSuite` subclass, a reference to it is saved in this `set`.
+    registry: set["TestSuite"] = set()
+
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
+        cls.registry.add(cls)
+        cls.module_path = is_test_file(fs.current_file(1))
 
     def after(self):
         """Run after each test in its respective test suite (Even if test failed)."""
@@ -90,25 +48,13 @@ class FakeTestSuite:
         pass
 
     @classmethod
-    def collect_tests(cls) -> list[Test]:
-        """Collect all test symbols in `cls`."""
-        storage = []
-
-        for test_name, test in vars(cls).items():
-            if callable(test) and test_name.startswith(TEST_PREFIX):
-                storage.append(
-                    Test(
-                        run=test,
-                        module_path=cls.module_path,
-                        home_path=cls.home_path,
-                        suite_name=cls.__qualname__,
-                        test_name=test_name,
-                        subjects=test.__dict__.get(SUBJECTS_ATTRIBUTE, frozenset()),
-                        tags=test.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
-                    )
-                )
-
-        return storage
+    def count_tests(cls) -> int:
+        """Return the number of tests in the suite."""
+        return sum(
+            1
+            for test_name, test in vars(cls).items()
+            if callable(test) and test_name.startswith(TEST_PREFIX)
+        )
 
     @classmethod
     def initialize(cls):
@@ -116,15 +62,33 @@ class FakeTestSuite:
         pass
 
     @classmethod
-    def run(cls, tests: list[Test]):
+    def run(
+        cls, test_condition: Callable[[Test], bool] = lambda _: True
+    ) -> Iterator[Test]:
         """Call all test symbols in `cls` in a random order and return results data."""
-
-        # Tests are randomly shuffled before execution since they are expected to be
-        # completely independent of each other and the order in which they are called.
-        random.shuffle(tests)
 
         # Instanciate a `cls` object to run the tests with.
         self = cls()
+
+        tests = list(
+            filter(
+                test_condition,
+                (
+                    Test(
+                        test_suite=cls,
+                        test=test,
+                        subjects=test.__dict__.get(SUBJECTS_ATTRIBUTE, frozenset()),
+                        tags=test.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
+                    )
+                    for name, test in vars(cls).items()
+                    if callable(test) and name.startswith(TEST_PREFIX)
+                ),
+            )
+        )
+
+        # Tests are randomly shuffled before execution since they are expected to be
+        # independent of each other and the order in which they are run.
+        # random.shuffle(tests)
 
         cls.initialize()
 
@@ -135,22 +99,28 @@ class FakeTestSuite:
                 try:
                     # Time and run the test.
                     t = time.perf_counter()
-                    test.run(self)
+                    test.test(self)
 
                 except Exception as exception:
                     stack = traceback.extract_tb(exception.__traceback__)
 
                     for summary in stack:
-                        if summary.name == test.run.__name__:
+                        if summary.name == test.test.__name__:
                             break
 
                     # Store failure data.
                     test.exception = exception
 
+                else:
+                    # If there was no exception, set the field to `None`.
+                    test.exception = None
+
                 finally:
                     self.after()
 
                 test.test_duration = time.perf_counter() - t
+
+                yield test
 
         finally:
             cls.terminate()
@@ -159,10 +129,6 @@ class FakeTestSuite:
     def terminate(cls):
         """Run once after all tests in its respective test suite were executed."""
         pass
-
-
-class TestSuite(FakeTestSuite, metaclass=TestSuiteMeta):
-    pass
 
 
 def is_test_file(path: str) -> str | None:
@@ -216,25 +182,23 @@ def test_file(path: str) -> str:
 
 
 def main(
-    root: str, condition: Callable[[Test], bool]
+    root: str, test_condition: Callable[[Test], bool]
 ) -> tuple[list[Test], dict[str, Exception]]:
     """Discover, collect, filter, and run tests found under `root`."""
+
     discovery_errors = {}
 
-    for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root):
+    for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root, with_root=True):
         if is_test_file(path):
             try:
                 meta.import_path(path)
             except Exception as e:
                 discovery_errors[path] = e
 
-    output = []
+    tests = sorted(
+        chain.from_iterable(
+            test_suite.run(test_condition) for test_suite in TestSuite.registry
+        )
+    )
 
-    for test_suite in test_suite_registry:
-        tests = list(filter(condition, test_suite.collect_tests()))
-        test_suite.run(tests)
-        output.extend(tests)
-
-    output.sort()
-
-    return output, discovery_errors
+    return tests, discovery_errors
