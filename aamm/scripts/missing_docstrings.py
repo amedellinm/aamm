@@ -1,4 +1,6 @@
+from aamm import file_system as fs
 from aamm import metadata
+from aamm.iterable import group_by
 from aamm.logging import Logger
 from aamm.logging import formats as fmts
 
@@ -11,35 +13,34 @@ def main():
     """
 
     logger = Logger.from_sys_stream("stdout")
+    logger.separate()
 
-    symbols = tuple(
-        symbol_info
-        for symbol_info in metadata.api_symbols().values()
-        if not (symbol_info.has_docstring or symbol_info.source_file is ...)
+    header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
+        (fs.relative(si.header_file, metadata.home), si)
+        for si in metadata.api_symbols().values()
+        if not si.has_docstring and isinstance(si.source_file, str)
     )
 
-    if not symbols:
+    if not header_file_groups:
+        logger.write("OK").separate()
         return 0
 
     logger.write(
         fmts.underlined_title(
             "Missing DOCSTRINGS for the following public symbols "
-            f"({len(symbols):,})"
+            f"({len(header_file_groups):,})"
         )
     )
 
-    for symbol_info in symbols:
-        logger.write(f"    name: {symbol_info.name}")
-        logger.write(f"    type: {type(symbol_info.value).__qualname__}")
-        logger.write(f"    source_file: {symbol_info.source_file}")
-        logger.write(f"    header_files: {symbol_info.header_files}")
-        logger.write(f"    has_docstring: {symbol_info.has_docstring}")
-        logger.write(f"    is_child: {symbol_info.is_child}")
-        logger.separate(1, flush=False)
+    for header_file, symbols_info in header_file_groups.items():
+        # Log symbol info.
+        logger.write(f"{header_file} ({len(symbols_info)})")
+        for symbol_info in symbols_info:
+            logger.write("  -", symbol_info.name)
 
-    # Log blank space.
-    logger.undo(ignore_empty=True)
-    logger.separate(forced=True)
+        logger.separate(1)
+
+    logger.separate(1, forced=True)
 
     # Return error exit code.
     return 1
