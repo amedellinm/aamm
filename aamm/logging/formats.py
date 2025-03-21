@@ -7,7 +7,6 @@ from aamm._.logging.formats import (
     key_error,
     operand_error,
     qualname,
-    reprlike,
     table,
     traceback,
     type_error,
