@@ -13,12 +13,8 @@ from aamm.testing.core import test_file
 # The folder in which the library lives.
 home = fs.up(__file__, 3)
 
-# Temporarily change CWD.
-cwd = fs.cwd()
-fs.cd(home)
-
 # Read package metadata from "pyproject.toml".
-with open("pyproject.toml", "rb") as stream:
+with open(fs.join(home, "pyproject.toml"), "rb") as stream:
     project_data = tomllib.load(stream)["project"]
     name = project_data["name"]
     version = project_data["version"]
@@ -27,7 +23,9 @@ with open("pyproject.toml", "rb") as stream:
 root = fs.join(home, name)
 
 # A tuple with all the source files in the library.
-source_files: tuple[str] = tuple(fs.glob(f"{name}{fs.SEP}_/**/*.py"))
+source_files: tuple[str] = tuple(
+    fs.glob(f"{name}{fs.SEP}_/**/*.py", home, with_root=True)
+)
 
 # To compute the header files several conditions have to be in place. The following
 # snippet retrieves all ".py" files that are not inside the "_", "scripts", or any of
@@ -41,8 +39,8 @@ for directory in depth_first(root, expand):
     if not condition(directory):
         continue
 
-    for file in map(fs.relative, fs.files(directory)):
-        if fs.extension(file) == "py":
+    for file in fs.files(directory):
+        if fs.extension(file) == "py" and fs.name(file) != "metadata":
             header_files.append(file)
 
 # A tuple with all the header files in the library.
@@ -50,10 +48,6 @@ header_files: tuple[str] = tuple(header_files)
 
 # A tuple with all the test files in the library.
 test_files: tuple[str] = tuple(map(test_file, header_files))
-
-
-# Resume CWD.
-fs.cd(cwd)
 
 
 @dataclass(slots=True, eq=False)
