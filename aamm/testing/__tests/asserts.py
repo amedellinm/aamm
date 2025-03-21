@@ -1,4 +1,4 @@
-import aamm.testing.core as testing
+from aamm import testing
 from aamm.testing import asserts
 
 
