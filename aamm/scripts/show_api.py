@@ -1,5 +1,6 @@
 from aamm import file_system as fs
 from aamm import meta, metadata
+from aamm.iterable import group_by
 from aamm.logging import Logger
 from aamm.logging import formats as fmts
 
@@ -9,22 +10,20 @@ def main():
 
     logger = Logger.from_sys_stream("stdout")
 
-    for path in metadata.header_files:
-        logger.write(meta.module_identifier(fs.relative(path, metadata.home)))
+    # Group symbols by header file.
+    header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
+        (meta.module_identifier(fs.relative(si.header_file, metadata.home)), si)
+        for si in metadata.api_symbols().values()
+    )
 
-        try:
-            module = meta.import_path(path)
-        except Exception as e:
-            # Log exception.
-            logger.write("   ", fmts.exception_message(e))
-        else:
-            # Log symbols.
-            for key, value in vars(module).items():
-                if key[:1].isalpha():
-                    logger.write(
-                        "   ",
-                        fmts.contents_table_row(key, fmts.qualname(value), 70),
-                    )
+    for header_file, symbols_info in sorted(header_file_groups.items()):
+        logger.write(header_file)
+        for si in symbols_info:
+            if not si.is_child:
+                logger.write(
+                    "   ",
+                    fmts.contents_table_row(si.name, fmts.qualname(si.value), 70),
+                )
 
         logger.separate(1)
 
