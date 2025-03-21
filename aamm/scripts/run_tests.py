@@ -3,20 +3,19 @@ from collections.abc import Callable
 from itertools import chain
 
 import aamm.logging.formats as fmts
-import aamm.testing.core as testing
 from aamm import file_system as fs
-from aamm import meta, metadata
+from aamm import meta, metadata, testing
 from aamm._.testing import asserts
 from aamm.iterable import group_by
 from aamm.logging import Logger
 from aamm.string import indent
+from aamm.testing.core import Test
 
 
-def main(test_condition: Callable[[testing.Test], bool] = lambda *_: True) -> int:
+def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
     """Run tests and log the results to the standard out."""
 
     logger = Logger.from_sys_stream("stdout")
-    # logger.enabled = False
     logger.separate()
 
     # Discover tests.
@@ -25,7 +24,7 @@ def main(test_condition: Callable[[testing.Test], bool] = lambda *_: True) -> in
     for path in metadata.test_files:
         try:
             # Importing a file containing subclasses of `testing.TestSuit` loads
-            # them to `testing.test_suite_registry`.
+            # them to `testing.TestSuit.registry`.
             meta.import_path(path)
         except Exception as e:
             # Save discovery error.
@@ -123,25 +122,16 @@ def main(test_condition: Callable[[testing.Test], bool] = lambda *_: True) -> in
             )
         )
 
-        # Group symbols by source file.
-        source_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
-            (si.source_file, si) for si in untested_symbols
+        # Group symbols by header file.
+        header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
+            (fs.relative(si.header_file, metadata.home), si) for si in untested_symbols
         )
 
-        # Compute the number of chars to left align the table.
-        alignment = max(map(len, (si.name for si in untested_symbols)))
-
-        for source_file, symbols_info in source_file_groups.items():
+        for header_file, symbols_info in header_file_groups.items():
             # Log symbol info.
-            logger.write(f"{source_file} ({len(symbols_info)})")
-            logger.write(
-                indent(
-                    fmts.table(
-                        [si.name.ljust(alignment) for si in symbols_info],
-                        [", ".join(si.header_files) for si in symbols_info],
-                    )
-                )
-            )
+            logger.write(f"{header_file} ({len(symbols_info)})")
+            for symbol_info in symbols_info:
+                logger.write("  -", symbol_info.name)
 
             logger.separate(1)
 
