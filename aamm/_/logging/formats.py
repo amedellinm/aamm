@@ -9,12 +9,12 @@ from aamm import file_system as fs
 from aamm.logging import Logger
 
 
-def qualname(obj: object) -> str:
+def qualname(obj: Any) -> str:
     """The fully qualified name of the type of `obj`."""
     return type(obj).__qualname__
 
 
-def attribute_error(obj: object, attribute: str) -> str:
+def attribute_error(obj: Any, attribute: str) -> str:
     """Return a message sutable for an attribute error exception."""
     return f"'{qualname(obj)}' object has no attribute '{attribute}'"
 
@@ -45,14 +45,14 @@ def function_call(function_name: str, *args, **kwargs) -> str:
     return f"{function_name}({params})"
 
 
-def index_error(sequence: object, index: int) -> str:
+def index_error(sequence: Any, index: int) -> str:
     """Return a message sutable for an index error exception."""
     length = len(sequence)
     type_name = qualname(sequence)
     return f"index {index} out of range for {type_name!r} object of length {length}"
 
 
-def key_error(key: object, mapping: object) -> str:
+def key_error(mapping: Any, key: Any) -> str:
     """Return a message sutable for a key error exception."""
     return f"{key!r} not in {qualname(mapping)!r} object"
 
@@ -61,13 +61,6 @@ def operand_error(operator: str, *operands: tuple[object]) -> str:
     """Return a message sutable for an operand error exception."""
     operands = ", ".join(map(repr, operands))
     return f"invalid operator '{operator}' for operand(s): {operands}"
-
-
-def reprlike(obj: object, *attrs: tuple[str]) -> str:
-    """Generate a repr-like string of `obj` featuring `attrs`."""
-    Type = type(obj).__qualname__
-    args = ", ".join(f"{attr}={getattr(obj, attr)!r}" for attr in attrs)
-    return f"{Type}({args})"
 
 
 def table(
@@ -147,7 +140,7 @@ def traceback(
     return logger.stream.getvalue().rstrip()
 
 
-def type_error(obtained: object, expected: type | tuple[type]) -> str:
+def type_error(obtained: Any, expected: type | tuple[type]) -> str:
     """Return a message sutable for a type error exception."""
     if isinstance(expected, type):
         expected = (expected,)
