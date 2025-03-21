@@ -35,6 +35,7 @@ class TestSuite:
     registry: set["TestSuite"] = set()
 
     def __init_subclass__(cls, *args, **kwargs):
+        """Save a reference to every subclass of `TestSuite`."""
         super().__init_subclass__(*args, **kwargs)
         cls.registry.add(cls)
         cls.module_path = is_test_file(fs.current_file(1))
