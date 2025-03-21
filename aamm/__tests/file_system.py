@@ -3,7 +3,7 @@ import tempfile
 from collections.abc import Iterator
 
 from aamm import file_system as fs
-from aamm import testing
+from aamm import metadata, testing
 from aamm.testing import asserts
 
 
@@ -45,8 +45,10 @@ class TestFileSystem(testing.TestSuite):
                 directories.append(directory)
                 os.makedirs(directory)
 
-            asserts.equal(directories, list(fs.directories(tmp_dir)))
-            asserts.equal(list("abc"), list(fs.directories(tmp_dir, leafs_only=True)))
+            asserts.equal(directories, sorted(fs.directories(tmp_dir)))
+            asserts.equal(
+                sorted("abc"), sorted(fs.directories(tmp_dir, leafs_only=True))
+            )
 
     @testing.subjects(fs.directory)
     def test_directory(self):
@@ -87,10 +89,10 @@ class TestFileSystem(testing.TestSuite):
                 files.append(file)
                 open(file, "w").close()
 
-            asserts.equal(files, list(fs.files(tmp_dir)))
+            asserts.equal(files, sorted(fs.files(tmp_dir)))
             asserts.equal(
                 ["a.txt", "b.txt", "c.txt"],
-                list(fs.files(tmp_dir, leafs_only=True)),
+                sorted(fs.files(tmp_dir, leafs_only=True)),
             )
 
     @testing.subjects(fs.glob)
@@ -151,8 +153,8 @@ class TestFileSystem(testing.TestSuite):
 
     @testing.subjects(fs.relative)
     def test_relative(self):
-        expected = fs.resolve(__file__).removeprefix(fs.resolve(fs.cwd()) + fs.SEP)
-        obtained = fs.relative(__file__)
+        expected = __file__.removeprefix(metadata.home + fs.SEP)
+        obtained = fs.relative(__file__, metadata.home)
 
         asserts.equal(expected, obtained)
 
