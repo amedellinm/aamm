@@ -2,7 +2,7 @@ import ast
 import tomllib
 from dataclasses import dataclass
 from inspect import getdoc
-from types import EllipsisType, MemberDescriptorType
+from types import EllipsisType, MemberDescriptorType, ModuleType
 from typing import Any
 
 from aamm import file_system as fs
@@ -55,17 +55,13 @@ class SymbolInfo:
     name: str
     value: Any
     has_docstring: bool
-    header_files: set[str]
+    header_file: str
     is_child: bool
     source_file: str
 
 
 def api_symbols() -> dict[int, SymbolInfo]:
     """Return a table of symbol:symbol_info for all symbols inside header files."""
-
-    # Temporarily change CWD.
-    cwd = fs.cwd()
-    fs.cd(home)
 
     # This is the inverse function of `meta.module_identifier`.
     def path_from_module(module_identifier: str) -> str | EllipsisType:
@@ -92,6 +88,10 @@ def api_symbols() -> dict[int, SymbolInfo]:
             # Continue if the name doesn't start with a letter.
             if not key[:1].isalpha():
                 continue
+            if isinstance(val, ModuleType):
+                raise RuntimeError(
+                    f"module '{key}' exposed in header file '{header_file}'"
+                )
 
             # Gather the information for the fields in `SymbolInfo`.
             src_module = getattr(val, "__module__", None)
@@ -100,11 +100,9 @@ def api_symbols() -> dict[int, SymbolInfo]:
             val_id = id(val)
 
             symbol_info = file_symbols[key] = symbols.setdefault(
-                val_id, SymbolInfo(key, val, has_docstring, set(), False, source_file)
+                val_id,
+                SymbolInfo(key, val, has_docstring, header_file, False, source_file),
             )
-            # A single symbol can be exposed through more than one header file. This
-            # design pattern allows for appending to existing data if any.
-            symbol_info.header_files.add(header_file)
 
             # If the symbol is a class (not a metaclass) and its definition lies within
             # this library, its child symbols are considered as well.
@@ -127,9 +125,10 @@ def api_symbols() -> dict[int, SymbolInfo]:
                     val_id = id(val)
                     symbol_info = file_symbols[key] = symbols.setdefault(
                         val_id,
-                        SymbolInfo(key, val, has_docstring, set(), True, source_file),
+                        SymbolInfo(
+                            key, val, has_docstring, header_file, True, source_file
+                        ),
                     )
-                    symbol_info.header_files.add(header_file)
 
         # Unlike functions and classes, variables do not contain as much metadata. For
         # them, to compute fields such as the source file, it is necessary to read the
@@ -169,8 +168,5 @@ def api_symbols() -> dict[int, SymbolInfo]:
 
                     # Update tje `source_file` field.
                     symbols[id(file_symbols[name].value)].source_file = source_file
-
-    # Resume CWD.
-    fs.cd(cwd)
 
     return symbols
