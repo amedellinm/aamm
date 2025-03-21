@@ -80,9 +80,7 @@ def table(
     elif alignment == "right":
         just = str.rjust
     else:
-        raise ValueError(
-            f"expected 'left' or 'right' for `alignment`, got {alignment}"
-        )
+        raise ValueError(f"expected 'left' or 'right' for `alignment`, got {alignment}")
 
     alignments = tuple(map(max, map(lambda column: map(len, column), columns)))
 
@@ -94,7 +92,7 @@ def table(
 
 def traceback(
     arg: Exception | TracebackType | tb.StackSummary,
-    ignore_paths=Container[str],
+    ignore_paths: Container[str],
     lines_around: int = 6,
 ) -> str:
     """Write the traceback of an exception in a more human-friendly way."""
