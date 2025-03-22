@@ -65,7 +65,7 @@ def api_symbols() -> dict[int, SymbolInfo]:
 
     # This is the inverse function of `meta.module_identifier`.
     def path_from_module(module_identifier: str) -> str | EllipsisType:
-        base_path = module_identifier.replace(".", fs.SEP)
+        base_path = fs.join(home, module_identifier.replace(".", fs.SEP))
         module_path = base_path + ".py"
         package_path = fs.join(base_path, "__init__.py")
         return (
