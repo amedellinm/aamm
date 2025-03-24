@@ -1,3 +1,4 @@
+import itertools
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
 
@@ -97,3 +98,17 @@ def split_iter(iterable: Iterable, condition: Callable) -> tuple[list, list]:
             false_group.append(i)
 
     return true_group, false_group
+
+
+def zip_dict(
+    *dictionaries: tuple[dict], fill_value=None
+) -> Iterator[tuple[Hashable, tuple]]:
+    """
+    Yield pairs of (key, `tuple` of values) using `fill_value` for the dictionaries
+    missing the key.
+
+    """
+    return (
+        (key, tuple(d.get(key, fill_value) for d in dictionaries))
+        for key in itertools.chain.from_iterable(dictionaries)
+    )

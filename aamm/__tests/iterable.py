@@ -1,5 +1,12 @@
 from aamm import testing
-from aamm.iterable import cap_iter, group_by, hinted_sort, skip_iter, split_iter
+from aamm.iterable import (
+    cap_iter,
+    group_by,
+    hinted_sort,
+    skip_iter,
+    split_iter,
+    zip_dict,
+)
 from aamm.testing import asserts
 
 
@@ -54,3 +61,11 @@ class TestIterable(testing.TestSuite):
 
         asserts.equal(odds, true_group)
         asserts.equal(evens, false_group)
+
+    @testing.subjects(zip_dict)
+    def test_zip_dict(self):
+        a = {"a": 1, "b": 2}
+        b = {"c": 3, "b": 2}
+        expected = {"a": (1, None), "b": (2, 2), "c": (None, 3)}
+        obtained = dict(zip_dict(a, b))
+        asserts.equal(expected, obtained)
