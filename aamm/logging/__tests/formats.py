@@ -16,6 +16,50 @@ class TestLogger(testing.TestSuite):
         obtained = fmts.contents_table_row(1, 2, 20)
         asserts.equal(expected, obtained)
 
+    @testing.subjects(fmts.dict_update)
+    def test_dict_update(self):
+        a = {
+            "editor.cursorBlinking": "solid",
+            "editor.cursorStyle": "line",
+            "editor.cursorSurroundingLines": 5,
+            "editor.fontSize": 22,
+            "editor.formatOnSave": True,
+            "editor.minimap.showSlider": "always",
+            "editor.mouseWheelZoom": True,
+            "editor.multiCursorModifier": "ctrlCmd",
+            "editor.padding.top": 40,
+        }
+
+        b = {
+            "editor.cursorBlinking": "solid",
+            "editor.cursorStyle": "line",
+            "editor.cursorSurroundingLines": 5,
+            "editor.fontSize": 26,
+            "editor.formatOnSave": False,
+            "editor.hover.delay": 200,
+            "editor.minimap.scale": 3,
+            "editor.minimap.showSlider": "always",
+            "editor.padding.top": 40,
+        }
+
+        expected = (
+            "  = 'editor.cursorBlinking': 'solid'\n"
+            "  = 'editor.cursorStyle': 'line'\n"
+            "  = 'editor.cursorSurroundingLines': 5\n"
+            "  ~ 'editor.fontSize': 26\n"
+            "  ~ 'editor.formatOnSave': False\n"
+            "  + 'editor.hover.delay': 200\n"
+            "  + 'editor.minimap.scale': 3\n"
+            "  = 'editor.minimap.showSlider': 'always'\n"
+            "    'editor.mouseWheelZoom': True\n"
+            "    'editor.multiCursorModifier': 'ctrlCmd'\n"
+            "  = 'editor.padding.top': 40\n"
+        )
+
+        obtained = fmts.dict_update(a, b)
+
+        asserts.equal(expected, obtained)
+
     @testing.subjects(fmts.exception_message)
     def test_exception_message(self):
         expected = "Exception: error message"

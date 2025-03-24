@@ -31,6 +31,26 @@ def contents_table_row(left: Any, right: Any, width: int = 88) -> str:
     return f"{l} {'.' * width} {r}"
 
 
+def dict_update(left: dict, right: dict) -> str:
+    """Write the changes made by calling `left.update(right)`."""
+    logger = Logger.from_string_io()
+    for key in sorted(frozenset(chain(left, right))):
+        if key not in right:
+            marker = " "
+            val = left[key]
+        elif key not in left:
+            marker = "+"
+            val = right[key]
+        elif left[key] == right[key]:
+            marker = "="
+            val = right[key]
+        else:
+            marker = "~"
+            val = right[key]
+        logger.write(f"  {marker} {key!r}: {val!r}")
+    return logger.stream.getvalue()
+
+
 def exception_message(exception: Exception) -> str:
     """Return the exception message with Exception Name: message as in usual Python."""
     msg = str(exception).strip() or "`no error message`"

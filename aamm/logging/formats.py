@@ -1,6 +1,7 @@
 from aamm._.logging.formats import (
     attribute_error,
     contents_table_row,
+    dict_update,
     exception_message,
     function_call,
     index_error,
