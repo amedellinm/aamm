@@ -32,6 +32,22 @@ class TestMeta(testing.TestSuite):
         asserts.greater_than(infinity, None)
         asserts.greater_than(infinity, 1_000_000_000_000)
 
+    @testing.subjects(
+        meta.DictTrackUnused.__getitem__,
+        meta.DictTrackUnused.__init__,
+        meta.DictTrackUnused.__setitem__,
+        meta.DictTrackUnused.unused_keys,
+    )
+    def test_dict_track_unused(self):
+        dictionary = meta.DictTrackUnused({"a": 1, "b": 2})
+        asserts.equal({"a", "b"}, dictionary.unused_keys())
+
+        dictionary["a"]
+        asserts.equal({"b"}, dictionary.unused_keys())
+
+        dictionary["c"] = 3
+        asserts.equal({"b", "c"}, dictionary.unused_keys())
+
     @testing.subjects(meta.import_path)
     def test_import_path(self):
         """

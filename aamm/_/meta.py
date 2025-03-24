@@ -2,6 +2,7 @@ import importlib.util
 import inspect
 import io
 import sys
+from collections import UserDict
 from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import wraps
@@ -151,6 +152,30 @@ def ConstantBooleanOperations(boolean_methods: dict[str, bool]) -> object:
         )
 
     return ConstantBooleanOperations()
+
+
+class DictTrackUnused(UserDict):
+    def __getitem__(self, key):
+        """Remove `key` from unused and return its value."""
+        self.__unused_keys.discard(key)
+        return super().__getitem__(key)
+
+    def __init__(self, *args, **kwargs):
+        """Call the `dict` constructor."""
+        self.__unused_keys = set()
+        self.__all_keys = set()
+        super().__init__(*args, **kwargs)
+
+    def __setitem__(self, key, value):
+        """Add `key` to unused if it is new and set its value."""
+        if key not in self.__all_keys:
+            self.__all_keys.add(key)
+            self.__unused_keys.add(key)
+        super().__setitem__(key, value)
+
+    def unused_keys(self) -> set:
+        """Return a `set` of the unused keys at the moment of calling this method."""
+        return self.__unused_keys.copy()
 
 
 class Namespace(type):
