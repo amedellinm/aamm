@@ -13,7 +13,6 @@ def main():
     """
 
     logger = Logger.from_sys_stream("stdout")
-    logger.separate()
 
     header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
         (fs.relative(si.header_file, metadata.home), si)
@@ -22,8 +21,10 @@ def main():
     )
 
     if not header_file_groups:
-        logger.write("OK").separate()
+        logger.write("OK")
         return 0
+
+    logger.separate()
 
     logger.write(
         fmts.underlined_title(
