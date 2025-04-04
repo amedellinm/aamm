@@ -51,9 +51,7 @@ class TestLogger(testing.TestSuite):
             "  + 'editor.hover.delay': 200\n"
             "  + 'editor.minimap.scale': 3\n"
             "  = 'editor.minimap.showSlider': 'always'\n"
-            "    'editor.mouseWheelZoom': True\n"
-            "    'editor.multiCursorModifier': 'ctrlCmd'\n"
-            "  = 'editor.padding.top': 40\n"
+            "  = 'editor.padding.top': 40"
         )
 
         obtained = fmts.dict_update(a, b)

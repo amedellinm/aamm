@@ -36,8 +36,7 @@ def dict_update(left: dict, right: dict) -> str:
     logger = Logger.from_string_io()
     for key in sorted(frozenset(chain(left, right))):
         if key not in right:
-            marker = " "
-            val = left[key]
+            continue
         elif key not in left:
             marker = "+"
             val = right[key]
@@ -48,7 +47,7 @@ def dict_update(left: dict, right: dict) -> str:
             marker = "~"
             val = right[key]
         logger.write(f"  {marker} {key!r}: {val!r}")
-    return logger.stream.getvalue()
+    return logger.stream.getvalue().rstrip()
 
 
 def exception_message(exception: Exception) -> str:
