@@ -33,6 +33,12 @@ def import_path(path: str) -> ModuleType:
     return module
 
 
+def mangle(obj: Any, attr: str) -> str:
+    """Return the mangled name of `attr`."""
+    class_name = type(obj).__name__.removeprefix("_")
+    return f"_{class_name}__{attr}"
+
+
 def module_identifier(path: str) -> str:
     """Return an import-statement-valid module identifier from a path."""
     return fs.remove_extension(path).replace(fs.SEP, ".").removesuffix(".__init__")
@@ -181,53 +187,32 @@ class DictTrackUnused(UserDict):
 class Namespace(type):
     """Create not-instantiable class whose methods are static."""
 
-    def __new__(cls, name: str, bases: tuple[type, ...], dctn: dict[str, Any]):
-        if bases:
-            raise ValueError("`Namespace` does not support inheritance")
+    def __init__(self, name, bases, namespace, **kwargs):
+        super().__init__(name, bases, namespace, **kwargs)
+        self.__unused_names: set[str] = {
+            name for name in namespace if name[:1].isalpha()
+        }
 
-        namespace = super().__new__(cls, name, (), dctn)
-        members = {k: v for k, v in vars(namespace).items() if k.isalpha()}
+    def __call__(self):
+        raise TypeError(f"namespace '{self.__qualname__}' is not instantiable")
 
-        class Instance:
-            __slots__ = tuple(members)
+    def __getattribute__(self, name: str):
+        super().__getattribute__(mangle(self, "unused_names")).discard(name)
+        return super().__getattribute__(name)
 
-        instance = Instance()
+    def unused_names(self) -> Iterator[tuple[str, Any]]:
+        # """Yield the name and value of all unused names in the namespace."""
+        for name in dir(self):
+            if not name[:1].isalpha():
+                continue
 
-        for item in members.items():
-            setattr(instance, *item)
+            value = super().__getattribute__(name)
 
-        return instance
-
-
-class NamespaceTrackUnused(type):
-    """Create a `Namespace` with a special `_unused_names` method."""
-
-    def __new__(cls, name: str, bases: tuple[type, ...], dctn: dict[str, Any]):
-        if bases:
-            raise ValueError("`Namespace` does not support inheritance")
-
-        namespace = super().__new__(cls, name, (), dctn)
-        members = {k: v for k, v in vars(namespace).items() if k.isalpha()}
-
-        unused_names = set(members)
-
-        class Instance:
-            __slots__ = tuple(members)
-
-            def __getattribute__(self, name: str):
-                unused_names.discard(name)
-                return super().__getattribute__(name)
-
-            @staticmethod
-            def _unused_names() -> list[str]:
-                return sorted(unused_names)
-
-        instance = Instance()
-
-        for item in members.items():
-            setattr(instance, *item)
-
-        return instance
+            if name in self.__unused_names:
+                yield name, value
+            if isinstance(value, type) and type(value) is Namespace:
+                for sub_name, sub_value in value.unused_names():
+                    yield f"{name}.{sub_name}", sub_value
 
 
 class ReadOnlyProperty:

@@ -57,6 +57,20 @@ class TestMeta(testing.TestSuite):
 
         """
 
+    @testing.subjects(meta.mangle)
+    def test_mangle(self):
+        class A:
+            pass
+
+        class _B:
+            pass
+
+        a = A()
+        b = _B()
+
+        asserts.equal(meta.mangle(a, "name"), "_A__name")
+        asserts.equal(meta.mangle(b, "name"), "_B__name")
+
     @testing.subjects(meta.module_identifier)
     def test_module_identifier(self):
         path = fs.join("a", "b", "c.py")
@@ -70,24 +84,14 @@ class TestMeta(testing.TestSuite):
     @testing.subjects(meta.Namespace)
     def test_namespace(self):
         class namespace(metaclass=meta.Namespace):
-            bla = None
+            a = None
+            b = None
 
-        namespace.bla = 10
-
-        with asserts.exception_context(AttributeError):
-            namespace.ble = 10
-
-    @testing.subjects(meta.NamespaceTrackUnused)
-    def test_namespace_track_unused(self):
-        class namespace(metaclass=meta.NamespaceTrackUnused):
-            b = 2
-            a = 1
-
-        asserts.equal(namespace._unused_names(), ["a", "b"])
+        asserts.equal(sorted(dict(namespace.unused_names())), ["a", "b"])
         namespace.b
-        asserts.equal(namespace._unused_names(), ["a"])
+        asserts.equal(sorted(dict(namespace.unused_names())), ["a"])
         namespace.a
-        asserts.equal(namespace._unused_names(), [])
+        asserts.equal(sorted(dict(namespace.unused_names())), [])
 
     @testing.subjects(meta.public_members)
     def test_public_members(self):
