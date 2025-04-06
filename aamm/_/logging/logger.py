@@ -2,6 +2,7 @@ import io
 import os
 import sys
 from collections import deque
+from threading import Lock
 from typing import Any, Literal, TextIO
 from weakref import finalize
 
@@ -51,6 +52,7 @@ class Logger:
         self.enabled = enabled
         self.unmanaged = unmanaged
 
+        self.__lock = Lock()
         self.__buffer = io.StringIO()
         self.__write_history = deque([], maxlen=50)
         self.sep_registry.setdefault(stream, True)
@@ -63,15 +65,17 @@ class Logger:
 
     def clear_buffer(self) -> Self:
         """Clear buffer."""
-        self.__buffer.seek(0)
-        self.__buffer.truncate()
-        self.__write_history.clear()
+        with self.__lock:
+            self.__buffer.seek(0)
+            self.__buffer.truncate()
+            self.__write_history.clear()
         return self
 
     def clear_stream(self) -> Self:
         """Clear stream."""
-        self.stream.seek(0)
-        self.stream.truncate()
+        with self.__lock:
+            self.stream.seek(0)
+            self.stream.truncate()
         return self
 
     def flush(self) -> Self:
@@ -112,18 +116,25 @@ class Logger:
         self, multiplier: int = 2, flush: bool = None, forced: bool = False
     ) -> Self:
         """Log `multiplier * self.END` idempotently."""
-        if self.sep_registry[self.stream] or forced:
-            self.write(end=multiplier * self.END, flush=flush)
+        with self.__lock:
+            if not (self.sep_registry[self.stream] or forced):
+                return
+
+        self.write(end=multiplier * self.END, flush=flush)
+
+        with self.__lock:
             self.sep_registry[self.stream] = False
 
         return self
 
     def undo(self, actions: int = 1, ignore_empty: bool = False) -> Self:
         """Undo the last n actions. Only works if the actions were not flushed."""
-        if self.__write_history or not ignore_empty:
-            n = sum(self.__write_history.pop() for _ in range(actions))
-            self.__buffer.seek(self.__buffer.tell() - n)
-            self.__buffer.truncate()
+        with self.__lock:
+            if self.__write_history or not ignore_empty:
+                n = sum(self.__write_history.pop() for _ in range(actions))
+                self.__buffer.seek(self.__buffer.tell() - n)
+                self.__buffer.truncate()
+
         return self
 
     def write(
@@ -167,15 +178,18 @@ class Logger:
             sep = self.SEP if sep is None else sep
             flush = self.FLUSH if flush is None else flush
 
-            self.sep_registry[self.stream] = True
             msg = sep.join(map(str, values)) + end
 
-            n = self.__buffer.write(msg)
+            with self.__lock:
+                self.sep_registry[self.stream] = True
+                n = self.__buffer.write(msg)
 
-            if self.FLUSH if flush is None else flush:
-                self.stream.write(self.__buffer.getvalue())
-                self.clear_buffer()
-            else:
-                self.__write_history.append(n)
+                if self.FLUSH if flush is None else flush:
+                    self.stream.write(self.__buffer.getvalue())
+                    self.__buffer.seek(0)
+                    self.__buffer.truncate()
+                    self.__write_history.clear()
+                else:
+                    self.__write_history.append(n)
 
         return self
