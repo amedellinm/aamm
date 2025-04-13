@@ -67,9 +67,9 @@ def contain(container: Container, item: Any):
     _assertion(item in container, f"assert {item!r} in {container!r}")
 
 
-def equal(a, b):
-    """Assert `a == b`."""
-    _assertion(a == b, f"assert {a!r} == {b!r}")
+def equal(expected, obtained):
+    """Assert `expected == obtained`."""
+    _assertion(expected == obtained, f"assert {expected!r} == {obtained!r}")
 
 
 @contextmanager
@@ -83,34 +83,34 @@ def exception_context(exception: Exception):
     _assertion(False, f"assert raise '{exception.__qualname__}'")
 
 
-def false(a):
-    """Assert `not a`."""
-    _assertion(not a, f"assert not bool({a!r})")
+def false(expected):
+    """Assert `not expected`."""
+    _assertion(not expected, f"assert not bool({expected!r})")
 
 
-def greater_equal(a, b):
-    """Assert `a >= b`."""
-    _assertion(a >= b, f"assert {a!r} >= {b!r}")
+def greater_equal(expected, obtained):
+    """Assert `expected >= obtained`."""
+    _assertion(expected >= obtained, f"assert {expected!r} >= {obtained!r}")
 
 
-def greater_than(a, b):
-    """Assert `a > b`."""
-    _assertion(a > b, f"assert {a!r} > {b!r}")
+def greater_than(expected, obtained):
+    """Assert `expected > obtained`."""
+    _assertion(expected > obtained, f"assert {expected!r} > {obtained!r}")
 
 
-def identical(a, b):
-    """Assert `a is b`."""
-    _assertion(a is b, f"assert {a!r} is {b!r}")
+def identical(expected, obtained):
+    """Assert `expected is obtained`."""
+    _assertion(expected is obtained, f"assert {expected!r} is {obtained!r}")
 
 
-def less_equal(a, b):
-    """Assert `a <= b`."""
-    _assertion(a <= b, f"assert {a!r} <= {b!r}")
+def less_equal(expected, obtained):
+    """Assert `expected <= obtained`."""
+    _assertion(expected <= obtained, f"assert {expected!r} <= {obtained!r}")
 
 
-def less_than(a, b):
-    """Assert `a < b`."""
-    _assertion(a < b, f"assert {a!r} < {b!r}")
+def less_than(expected, obtained):
+    """Assert `expected < obtained`."""
+    _assertion(expected < obtained, f"assert {expected!r} < {obtained!r}")
 
 
 def not_contain(container: Container, item: Any):
@@ -118,14 +118,14 @@ def not_contain(container: Container, item: Any):
     _assertion(item not in container, f"assert {item!r} not in {container!r}")
 
 
-def not_equal(a, b):
-    """Assert `a != b`."""
-    _assertion(a != b, f"assert {a!r} != {b!r}")
+def not_equal(expected, obtained):
+    """Assert `expected != obtained`."""
+    _assertion(expected != obtained, f"assert {expected!r} != {obtained!r}")
 
 
-def not_identical(a, b):
-    """Assert `a is not b`."""
-    _assertion(a is not b, f"assert {a!r} is not {b!r}")
+def not_identical(expected, obtained):
+    """Assert `expected is not obtained`."""
+    _assertion(expected is not obtained, f"assert {expected!r} is not {obtained!r}")
 
 
 def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
@@ -138,6 +138,6 @@ def raise_exception(exception: Exception, function: Callable, *args, **kwargs):
     _assertion(False, f"assert raise '{exception.__qualname__}'")
 
 
-def true(a):
-    """Assert `bool(a)`."""
-    _assertion(bool(a), f"assert bool({a!r})")
+def true(expected):
+    """Assert `bool(expected)`."""
+    _assertion(bool(expected), f"assert bool({expected!r})")
