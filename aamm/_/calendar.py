@@ -1,5 +1,3 @@
-from calendar import isleap as is_leap
-from calendar import monthrange
 from collections.abc import Iterator
 from datetime import date as Date
 from datetime import datetime as DateTime
@@ -28,20 +26,14 @@ def _elapse(difference: int, delta: int) -> range:
     return range(0, difference, delta)
 
 
-def date_range(start: Date, stop: int, step: int = 1) -> Iterator[Date]:
-    """
-    Iterate like `range` but using `datetime.date` instead of `int`s. `start` is the
-    beginning of the range. The sign of `step` is ignored, instead it is inferred
-    from `stop`.
-
-    """
-    step = (-1 if stop < 0 else 1) * abs(step)
-    return (start + DAY * i for i in range(0, stop, step))
-
-
 def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
     """Generate dates from `start` to `end` advancing `step` dates at a time."""
-    return (start + DAY * i for i in _elapse((end - start).days, delta))
+    difference = (
+        end - int(end and end // abs(end))
+        if isinstance(end, int)
+        else (end - start).days
+    )
+    return (start + DAY * i for i in _elapse(difference, delta))
 
 
 def find_weekday(
@@ -85,6 +77,18 @@ def find_weekday(
 def first_isodate(year: int) -> Date:
     """Return the first date in the isoyear."""
     return parse_string(f"{year:>04}011", r"%G%V%u")
+
+
+def is_leap(year):
+    """Return True for leap years, False for non-leap years."""
+    return year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)
+
+
+def month_days(year: int, month: int) -> int:
+    """Return the number of days in a year-month."""
+    parity = (month + (month > 7)) % 2
+    february = month == 2
+    return (30 + parity) - (2 * february >> is_leap(year))
 
 
 def parse_date(date: Date, format_codes: str) -> str:
@@ -170,24 +174,20 @@ class DateValue:
         """Return today's `cls` instance."""
         return cls.from_date(Date.today())
 
-    def elapse(self, end: Self, delta: int = 1) -> Iterator[Self]:
-        """Generate `YearMonth` objects going from `self` to `end`."""
-        return (self + i for i in _elapse(end.value - self.value, delta))
+    def elapse(self, end: int | Self, delta: int = 1) -> Iterator[Self]:
+        """Generate `type(self)` objects going from `self` to `end`."""
+        difference = (
+            end - int(end and end // abs(end))
+            if isinstance(end, int)
+            else end.value - self.value
+        )
+
+        return (self + i for i in _elapse(difference, delta))
 
     @classmethod
     def from_integer(cls, integer: int) -> Self:
         """Construct from a valid `int` object YYYYMM."""
         return cls.from_string(f"{integer:>06}")
-
-    def range(self, stop: int, step: int = 1) -> Iterator[Self]:
-        """
-        Iterate like `range` but using `type(self)` instead of `int`s. `self` is the
-        beginning of the range. The sign of `step` is ignored, instead it is inferred
-        from `stop`.
-
-        """
-        step = (-1 if stop < 0 else 1) * abs(step)
-        return (self + i for i in range(0, stop, step))
 
 
 class YearMonth(DateValue):
@@ -228,7 +228,7 @@ class YearMonth(DateValue):
 
     def __len__(self) -> int:
         """Return the number of days in the month."""
-        return monthrange(self.year, self.month)[1]
+        return month_days(*self.yearmonth)
 
     def __repr__(self) -> str:
         return f"{type(self).__qualname__}({self.year}, {self.month})"

@@ -23,22 +23,6 @@ class TestCalendar(testing.TestSuite):
     def test_aliases(self):
         """Aliases for symbols in the standard library do not require testing."""
 
-    @testing.subjects(calendar.date_range)
-    def test_date_range(self):
-        origin = calendar.Date(2000, 1, 1)
-
-        expected = (origin, origin + 1 * calendar.DAY, origin + 2 * calendar.DAY)
-        obtained = tuple(calendar.date_range(origin, 3))
-        asserts.equal(expected, obtained)
-
-        expected = (origin, origin - 1 * calendar.DAY, origin - 2 * calendar.DAY)
-        obtained = tuple(calendar.date_range(origin, -3))
-        asserts.equal(expected, obtained)
-
-        expected = (origin, origin + 2 * calendar.DAY)
-        obtained = tuple(calendar.date_range(origin, 3, 2))
-        asserts.equal(expected, obtained)
-
     @testing.subjects(calendar.elapse)
     def test_elapse(self):
         d1 = Date(2000, 1, 1)
@@ -46,6 +30,20 @@ class TestCalendar(testing.TestSuite):
         d3 = Date(2000, 1, 3)
 
         test_elapse_generic(calendar.elapse, d1, d2, d3)
+
+        origin = calendar.Date(2000, 1, 1)
+
+        expected = (origin, origin + 1 * calendar.DAY, origin + 2 * calendar.DAY)
+        obtained = tuple(calendar.elapse(origin, 3))
+        asserts.equal(expected, obtained)
+
+        expected = (origin, origin - 1 * calendar.DAY, origin - 2 * calendar.DAY)
+        obtained = tuple(calendar.elapse(origin, -3))
+        asserts.equal(expected, obtained)
+
+        expected = (origin, origin + 2 * calendar.DAY)
+        obtained = tuple(calendar.elapse(origin, 3, 2))
+        asserts.equal(expected, obtained)
 
     @testing.subjects(calendar.find_weekday)
     def test_find_weekday(self):
@@ -93,6 +91,26 @@ class TestCalendar(testing.TestSuite):
 
         for year, date in test_cases.items():
             asserts.equal(calendar.first_isodate(year), date)
+
+    @testing.subjects(calendar.is_leap)
+    def test_is_leap(self):
+        for year in (1600, 2024, -1600, -2024):
+            assert calendar.is_leap(year), f"Expected True for {year}, gor False"
+
+        for year in (1700, 2023, -1700, -2023):
+            assert not calendar.is_leap(year), f"Expected False for {year}, gor True"
+
+    @testing.subjects(calendar.month_days)
+    def test_month_days(self):
+        years = 12 * (2000,) + 12 * (2001,)
+        months = 2 * tuple(range(1, 13))
+        results = 2 * [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        results[1] = 29
+
+        for year, month, expected in zip(years, months, results):
+            obtained = calendar.month_days(year, month)
+            error_message = f"expected {expected}, got {obtained} for {year}-{month}"
+            assert calendar.month_days(year, month) == expected, error_message
 
     @testing.subjects(calendar.DAY, calendar.WEEK)
     def test_timedeltas(self):
@@ -176,6 +194,20 @@ class TestYearMonth(testing.TestSuite):
         ym3 = calendar.YearMonth(2000, 3)
 
         test_elapse_generic(calendar.YearMonth.elapse, ym1, ym2, ym3)
+
+        origin = calendar.YearWeek(2000, 6)
+
+        expected = (origin, origin + 1, origin + 2)
+        obtained = tuple(origin.elapse(3))
+        asserts.equal(expected, obtained)
+
+        expected = (origin, origin - 1, origin - 2)
+        obtained = tuple(origin.elapse(-3))
+        asserts.equal(expected, obtained)
+
+        expected = (origin, origin + 2)
+        obtained = tuple(origin.elapse(3, 2))
+        asserts.equal(expected, obtained)
 
     @testing.subjects(
         calendar.YearMonth.__eq__,
@@ -340,22 +372,6 @@ class TestYearWeek(testing.TestSuite):
         asserts.equal(7, len(calendar.YearWeek(2000, 2)))
         asserts.equal(7, len(calendar.YearWeek(2000, 3)))
         asserts.equal(7, len(calendar.YearWeek(2000, 4)))
-
-    @testing.subjects(calendar.YearWeek.range)
-    def test_range(self):
-        origin = calendar.YearWeek(2000, 6)
-
-        expected = (origin, origin + 1, origin + 2)
-        obtained = tuple(origin.range(3))
-        asserts.equal(expected, obtained)
-
-        expected = (origin, origin - 1, origin - 2)
-        obtained = tuple(origin.range(-3))
-        asserts.equal(expected, obtained)
-
-        expected = (origin, origin + 2)
-        obtained = tuple(origin.range(3, 2))
-        asserts.equal(expected, obtained)
 
     @testing.subjects(calendar.YearWeek.__repr__)
     def test_repr(self):
