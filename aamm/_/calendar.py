@@ -27,7 +27,7 @@ def _elapse(difference: int, delta: int) -> range:
 
 
 def elapse(start: Date, end: Date, delta: int = 1) -> Iterator[Date]:
-    """Generate dates from `start` to `end` advancing `step` dates at a time."""
+    """Generate dates from `start` to `end` advancing `delta` dates at a time."""
     difference = (
         end - int(end and end // abs(end))
         if isinstance(end, int)
