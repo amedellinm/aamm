@@ -60,10 +60,18 @@ def find_weekday(
     include_start:
         * If `True`, `start_date` counts towards the indexing of the returned date.
 
+    RAISE
+    -----
+    ValueError:
+        * If `index == 0`.
+        * If `not (1 <= weekday <= 6)`.
+
     """
 
     if index == 0:
         raise ValueError("argument `index` can not be 0")
+    if not (1 <= weekday <= 6):
+        raise ValueError(f"expected [0, 6]  for argument `weekday`, got {weekday}")
 
     shift = weekday - start_date.weekday()
     index_sign = -1 if index < 0 else 1
