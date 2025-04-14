@@ -87,7 +87,7 @@ def first_isodate(year: int) -> Date:
     return parse_string(f"{year:>04}011", r"%G%V%u")
 
 
-def is_leap(year):
+def is_leap(year: int) -> bool:
     """Return True for leap years, False for non-leap years."""
     return year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)
 
