@@ -51,7 +51,7 @@ def find_weekday(
 
     weekday:
         * An `int` representing the day of the week.
-        * Ranges from [Monday = 0, Sunday = 6].
+        * Range [Monday = 0, Sunday = 6].
 
     index:
         * The index of the weekday to find.
