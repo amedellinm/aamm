@@ -3,14 +3,16 @@ import inspect
 import io
 import sys
 from collections import UserDict
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from functools import wraps
 from types import GenericAlias, ModuleType
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, TypeVar
 
 from aamm import file_system as fs
 from aamm import string
+
+T = TypeVar("T")
 
 
 @contextmanager
@@ -31,6 +33,46 @@ def import_path(path: str) -> ModuleType:
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def lazy_property(method: Callable[[Any], T]) -> T:
+    """
+    DESCRIPTION
+    -----------
+    Convert a method into a `property` whose initial value is lazyly computed upon
+    accessing it for the first time.
+
+    PARAMETERS
+    ----------
+    method:
+        - receives `self` as a parameter.
+        - runs only once.
+        - its return value is used as the initial value of the property.
+
+    """
+
+    from aamm.logging import formats as fmts
+
+    private_name = "_" + method.__name__
+    deleted_flag = False
+
+    def gettter(instance):
+
+        if deleted_flag:
+            raise AttributeError(fmts.attribute_error(instance, method.__name__))
+        if not hasattr(instance, private_name):
+            setattr(instance, private_name, method(instance))
+        return getattr(instance, private_name)
+
+    def setter(instance, value):
+        setattr(instance, private_name, value)
+
+    def deleter(instance):
+        nonlocal deleted_flag
+        deleted_flag = True
+        delattr(instance, private_name)
+
+    return property(gettter, setter, deleter, "hi")
 
 
 def mangle(obj: Any, attr: str) -> str:

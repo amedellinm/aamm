@@ -57,6 +57,18 @@ class TestMeta(testing.TestSuite):
 
         """
 
+    @testing.subjects(meta.lazy_property)
+    def test_lazy_property(self):
+        class A:
+            @meta.lazy_property
+            def bla(self) -> int:
+                return 10
+
+        a = A()
+        assert not vars(a)
+        a.bla
+        assert vars(a)
+
     @testing.subjects(meta.mangle)
     def test_mangle(self):
         class A:
