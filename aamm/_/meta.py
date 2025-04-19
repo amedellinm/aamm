@@ -72,7 +72,7 @@ def lazy_property(method: Callable[[Any], T]) -> T:
         deleted_flag = True
         delattr(instance, private_name)
 
-    return property(gettter, setter, deleter, "hi")
+    return property(gettter, setter, deleter)
 
 
 def mangle(obj: Any, attr: str) -> str:
