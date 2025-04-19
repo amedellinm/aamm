@@ -1,11 +1,11 @@
 from collections import deque
 from collections.abc import Callable, Hashable, Iterator
-from typing import Any
+from typing import Any, TypeVar
+
+T = TypeVar("T", bound=Hashable)
 
 
-def breadth_first(
-    root: Hashable, expand: Callable[[Hashable], Iterator[Hashable]]
-) -> Iterator[Hashable]:
+def breadth_first(root: T, expand: Callable[[T], Iterator[T]]) -> Iterator[T]:
     """Traverse a graph from `root` using breadth-first."""
     queue = deque([root])
     known = set()
@@ -23,10 +23,8 @@ def breadth_first(
 
 
 def breadth_first_paths(
-    root: Hashable,
-    expand: Callable[[Hashable], Iterator[Hashable]],
-    sentinel: Any = ...,
-) -> Iterator[list[Hashable]]:
+    root: T, expand: Callable[[T], Iterator[T]], sentinel: Any = ...
+) -> Iterator[list[T]]:
     """Like `breadth_first` but yield paths instead of single nodes."""
     path = []
     queue = deque([root])
@@ -51,9 +49,7 @@ def breadth_first_paths(
         queue.append(sentinel)
 
 
-def depth_first(
-    root: Hashable, expand: Callable[[Hashable], Iterator[Hashable]]
-) -> Iterator[Hashable]:
+def depth_first(root: T, expand: Callable[[T], Iterator[T]]) -> Iterator[T]:
     """Traverse a graph from `root` using depth-first."""
     queue = [root]
     known = set()
@@ -70,10 +66,10 @@ def depth_first(
 
 
 def depth_first_paths(
-    root: Hashable,
-    expand: Callable[[Hashable], Iterator[Hashable]],
+    root: T,
+    expand: Callable[[T], Iterator[T]],
     sentinel: Any = ...,
-) -> Iterator[list[Hashable]]:
+) -> Iterator[list[T]]:
     """Like `depth_first` but yield paths instead of single nodes."""
     path = []
     queue = [root]
