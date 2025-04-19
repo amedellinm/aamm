@@ -57,7 +57,6 @@ def lazy_property(method: Callable[[Any], T]) -> T:
     deleted_flag = False
 
     def gettter(instance):
-
         if deleted_flag:
             raise AttributeError(fmts.attribute_error(instance, method.__name__))
         if not hasattr(instance, private_name):
