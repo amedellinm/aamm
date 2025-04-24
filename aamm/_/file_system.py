@@ -41,7 +41,7 @@ def cwd_context(path: str):
 
 def directories(root: str, leafs_only: bool = False) -> list[str]:
     """List all directories in `root`."""
-    root, paths, _ = next(os.walk(root), (None, None, []))
+    root, paths, _ = next(os.walk(root), (root, [], None))
     if leafs_only:
         return paths
     return [os.path.join(root, subpath) for subpath in paths]
@@ -69,7 +69,7 @@ _extension = extension
 
 def files(root: str, leafs_only: bool = False) -> list[str]:
     """List all files in `root`."""
-    root, _, paths = next(os.walk(root), (None, None, []))
+    root, _, paths = next(os.walk(root), (root, None, []))
     if leafs_only:
         return paths
     return [os.path.join(root, subpath) for subpath in paths]
@@ -102,9 +102,7 @@ def has_extension(path: str, extension: str = None) -> bool:
     """Check `path` has extension `extension`."""
     obtained = _extension(path)
     return (
-        bool(obtained)
-        if extension is None
-        else extension.removeprefix(".") == obtained
+        bool(obtained) if extension is None else extension.removeprefix(".") == obtained
     )
 
 
