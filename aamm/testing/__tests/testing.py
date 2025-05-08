@@ -3,6 +3,17 @@ from aamm.testing import asserts
 
 
 class TestTestSuite(testing.TestSuite):
+    @testing.subjects(
+        testing.Test.exception,
+        testing.Test.subjects,
+        testing.Test.tags,
+        testing.Test.test,
+        testing.Test.test_duration,
+        testing.Test.test_suite,
+    )
+    def test_dataclass_generated_symbols(self):
+        pass
+
     @testing.subjects(testing.subjects)
     def test_subjects(self):
         def f():
@@ -58,8 +69,25 @@ class TestTestSuite(testing.TestSuite):
         asserts.equal(1, len(filtered_tests))
         asserts.equal("test_4", filtered_tests[0].test.__name__)
 
+    @testing.subjects(testing.Test.__lt__)
+    def test_test(self):
+        class FakeTestSuite(testing.TestSuite):
+            def test_2(self):
+                pass
+
+            def test_1(self):
+                pass
+
+        testing.TestSuite.registry.remove(FakeTestSuite)
+
+        t1, t2 = sorted(FakeTestSuite.run())
+        asserts.equal("test_1", t1.test.__name__)
+        asserts.equal("test_2", t2.test.__name__)
+
     @testing.subjects(
+        testing.TestSuite.TEST_PREFIX,
         testing.TestSuite.__init_subclass__.__func__,
+        testing.TestSuite.__iter__.__func__,
         testing.TestSuite.after,
         testing.TestSuite.before,
         testing.TestSuite.count_tests.__func__,

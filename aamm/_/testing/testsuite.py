@@ -3,15 +3,9 @@ import time
 import traceback
 from collections.abc import Callable, Hashable, Iterator
 from dataclasses import dataclass
-from itertools import chain
 
 from aamm import file_system as fs
-from aamm import meta
-from aamm.string import right_replace
 
-TEST_DIRECTORY_NAME = "__tests"
-TEST_PREFIX = "test_"
-TEST_PATH_JOIN = f"{TEST_DIRECTORY_NAME}{fs.SEP}"
 TAGS_ATTRIBUTE = "aamm-testing-tags"
 SUBJECTS_ATTRIBUTE = "aamm-testing-subjects"
 
@@ -20,25 +14,38 @@ SUBJECTS_ATTRIBUTE = "aamm-testing-subjects"
 class Test:
     """A simple data structure to store test information and results."""
 
-    test_suite: "TestSuite" = None
-    test: Callable[["TestSuite"], None] = None
+    test_suite: "TestSuite"
+    test: Callable[["TestSuite"], None]
     exception: Exception = ...
     test_duration: float = float("nan")
     subjects: frozenset[int] = frozenset()
     tags: frozenset = frozenset()
 
+    def __lt__(self, other: "Test") -> bool:
+        a = (self.test_suite.home, self.test.__qualname__)
+        b = (other.test_suite.home, other.test.__qualname__)
+        return a < b
+
 
 class TestSuite:
     """Main class of the `testing` subpackage."""
+
+    TEST_PREFIX = "test_"
 
     # Upon declaring a `TestSuite` subclass, a reference to it is saved in this `set`.
     registry: set["TestSuite"] = set()
 
     def __init_subclass__(cls, *args, **kwargs):
         """Save a reference to every subclass of `TestSuite`."""
-        super().__init_subclass__(*args, **kwargs)
         cls.registry.add(cls)
-        cls.module_path = is_test_file(fs.current_file(1))
+        cls.home = fs.current_file(1)
+
+    @classmethod
+    def __iter__(cls) -> Iterator[Callable[["TestSuite"], None]]:
+        """Yield all test methods."""
+        for name, test in vars(cls).items():
+            if callable(test) and name.startswith(cls.TEST_PREFIX):
+                yield test
 
     def after(self):
         """Run after each test in its respective test suite (Even if test failed)."""
@@ -51,11 +58,7 @@ class TestSuite:
     @classmethod
     def count_tests(cls) -> int:
         """Return the number of tests in the suite."""
-        return sum(
-            1
-            for test_name, test in vars(cls).items()
-            if callable(test) and test_name.startswith(TEST_PREFIX)
-        )
+        return sum(1 for _ in cls())
 
     @classmethod
     def initialize(cls):
@@ -71,25 +74,24 @@ class TestSuite:
         # Instanciate a `cls` object to run the tests with.
         self = cls()
 
-        tests = list(
-            filter(
-                test_condition,
-                (
-                    Test(
-                        test_suite=cls,
-                        test=test,
-                        subjects=test.__dict__.get(SUBJECTS_ATTRIBUTE, frozenset()),
-                        tags=test.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
-                    )
-                    for name, test in vars(cls).items()
-                    if callable(test) and name.startswith(TEST_PREFIX)
-                ),
+        tests = []
+
+        for test_method in self:
+            # Save test result-independent data.
+            test = Test(
+                test_suite=cls,
+                test=test_method,
+                subjects=test_method.__dict__.get(SUBJECTS_ATTRIBUTE, frozenset()),
+                tags=test_method.__dict__.get(TAGS_ATTRIBUTE, frozenset()),
             )
-        )
+
+            # Filter tests eligible for execution.
+            if test_condition(test):
+                tests.append(test)
 
         # Tests are randomly shuffled before execution since they are expected to be
         # independent of each other and the order in which they are run.
-        # random.shuffle(tests)
+        random.shuffle(tests)
 
         cls.initialize()
 
@@ -105,6 +107,8 @@ class TestSuite:
                 except Exception as exception:
                     stack = traceback.extract_tb(exception.__traceback__)
 
+                    # Traverse the stack looking for the summary corresponding to the
+                    # test. This accounts for decorated tests.
                     for summary in stack:
                         if summary.name == test.test.__name__:
                             break
@@ -132,23 +136,6 @@ class TestSuite:
         pass
 
 
-def is_test_file(path: str) -> str | None:
-    """Check whether `path` is a valid test file path."""
-    module_path = right_replace(path, TEST_PATH_JOIN, "")
-    package_path = fs.join(fs.up(module_path, 2), fs.name(module_path), "__init__.py")
-
-    module_exists = fs.exists(module_path)
-    package_exists = fs.exists(package_path)
-
-    if (
-        fs.is_file(path)
-        and fs.has_extension(path, "py")
-        and fs.segment(path, -2) == TEST_DIRECTORY_NAME
-        and module_exists ^ package_exists
-    ):
-        return module_path if module_exists else fs.directory(package_path)
-
-
 def subjects(*subjects: tuple) -> Callable:
     """Store `subjects` under a `SUBJECTS_ATTRIBUTE` attribute in the decorated test."""
 
@@ -167,39 +154,3 @@ def tag(*tags: tuple[Hashable]) -> Callable:
         return test
 
     return decorator
-
-
-def test_file(path: str) -> str:
-    """Return the proper path to the test file corresponding to `path`."""
-    leaf = (
-        fs.name(fs.directory(path)) + ".py"
-        if fs.leaf(path) == "__init__.py"
-        else fs.leaf(path)
-    )
-    return fs.with_leaf(path, TEST_PATH_JOIN + leaf)
-
-
-# / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
-
-
-def main(
-    root: str, test_condition: Callable[[Test], bool]
-) -> tuple[list[Test], dict[str, Exception]]:
-    """Discover, collect, filter, and run tests found under `root`."""
-
-    discovery_errors = {}
-
-    for path in fs.glob(f"**/{TEST_DIRECTORY_NAME}/*.py", root, with_root=True):
-        if is_test_file(path):
-            try:
-                meta.import_path(path)
-            except Exception as e:
-                discovery_errors[path] = e
-
-    tests = sorted(
-        chain.from_iterable(
-            test_suite.run(test_condition) for test_suite in TestSuite.registry
-        )
-    )
-
-    return tests, discovery_errors

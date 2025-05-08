@@ -12,7 +12,7 @@ def main():
 
     # Group symbols by header file.
     header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
-        (meta.module_identifier(fs.relative(si.header_file, metadata.home)), si)
+        (meta.module_name(fs.relative(si.header_file, metadata.home)), si)
         for si in metadata.api_symbols().values()
     )
 

@@ -1,5 +1,6 @@
 import traceback
 from collections.abc import Callable
+from importlib import import_module
 from itertools import chain
 
 import aamm.logging.formats as fmts
@@ -8,8 +9,8 @@ from aamm import meta, metadata, testing
 from aamm._.testing import asserts
 from aamm.iterable import group_by
 from aamm.logging import Logger
-from aamm.string import indent
-from aamm.testing.core import Test
+from aamm.strings import indent
+from aamm.testing import Test
 
 
 def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
@@ -22,10 +23,11 @@ def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
     discovery_errors = {}
 
     for path in metadata.test_files:
+        module = meta.module_name(fs.relative(path, metadata.home))
         try:
             # Importing a file containing subclasses of `testing.TestSuit` loads
             # them to `testing.TestSuit.registry`.
-            meta.import_path(path)
+            import_module(module)
         except Exception as e:
             # Save discovery error.
             discovery_errors[path] = e
@@ -40,15 +42,14 @@ def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
 
     # Group test suites by module path.
     module_groups: dict[str, tuple[testing.TestSuite]] = group_by(
-        (fs.relative(ts.module_path, metadata.home), ts)
-        for ts in testing.TestSuite.registry
+        (fs.relative(ts.home, metadata.home), ts) for ts in testing.TestSuite.registry
     )
 
     for module_path, test_suites in sorted(module_groups.items()):
         # Log module info.
-        module_identifier = meta.module_identifier(module_path)
+        module_name = meta.module_name(module_path)
         test_count = sum(ts.count_tests() for ts in test_suites)
-        logger.write(module_identifier, f"({test_count:,})")
+        logger.write(module_name, f"({test_count:,})")
 
         for name, test_suite in sorted((ts.__qualname__, ts) for ts in test_suites):
             # Log test suite info.
@@ -108,9 +109,8 @@ def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
         symbol_info
         for symbol_id, symbol_info in metadata.api_symbols().items()
         if symbol_id not in tested_symbols
-        and symbol_info.source_file is not ...
+        and symbol_info.source_file is not None
         and not isinstance(symbol_info.value, type)
-        and not symbol_info.name.endswith(".__repr__")
     )
 
     if untested_symbols:

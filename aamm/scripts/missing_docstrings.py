@@ -17,7 +17,7 @@ def main():
     header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
         (fs.relative(si.header_file, metadata.home), si)
         for si in metadata.api_symbols().values()
-        if not si.has_docstring and isinstance(si.source_file, str)
+        if si.source_file and not si.has_docstring
     )
 
     if not header_file_groups:
