@@ -225,37 +225,6 @@ class DictTrackUnused(UserDict):
         return self.__unused_keys.copy()
 
 
-class Namespace(type):
-    """Create not-instantiable class whose methods are static."""
-
-    def __init__(self, name, bases, namespace, **kwargs):
-        super().__init__(name, bases, namespace, **kwargs)
-        self.__unused_names: set[str] = {
-            name for name in namespace if name[:1].isalpha()
-        }
-
-    def __call__(self):
-        raise TypeError(f"namespace '{self.__qualname__}' is not instantiable")
-
-    def __getattribute__(self, name: str):
-        super().__getattribute__(mangle(self, "unused_names")).discard(name)
-        return super().__getattribute__(name)
-
-    def unused_names(self) -> Iterator[tuple[str, Any]]:
-        # """Yield the name and value of all unused names in the namespace."""
-        for name in dir(self):
-            if not name[:1].isalpha():
-                continue
-
-            value = super().__getattribute__(name)
-
-            if name in self.__unused_names:
-                yield name, value
-            if isinstance(value, type) and type(value) is Namespace:
-                for sub_name, sub_value in value.unused_names():
-                    yield f"{name}.{sub_name}", sub_value
-
-
 class ReadOnlyProperty:
     """Allow one write operation, then become read-only."""
 

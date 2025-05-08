@@ -91,19 +91,7 @@ class TestMeta(testing.TestSuite):
 
         path = fs.join("a", "b", "__init__.py")
         module = "a.b"
-        asserts.equal(module, meta.module_identifier(path))
-
-    @testing.subjects(meta.Namespace)
-    def test_namespace(self):
-        class namespace(metaclass=meta.Namespace):
-            a = None
-            b = None
-
-        asserts.equal(sorted(dict(namespace.unused_names())), ["a", "b"])
-        namespace.b
-        asserts.equal(sorted(dict(namespace.unused_names())), ["a"])
-        namespace.a
-        asserts.equal(sorted(dict(namespace.unused_names())), [])
+        asserts.equal(module, meta.module_name(path))
 
     @testing.subjects(meta.public_members)
     def test_public_members(self):
