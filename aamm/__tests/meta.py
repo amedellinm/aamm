@@ -146,6 +146,41 @@ class TestMeta(testing.TestSuite):
         assert isinstance(a.x, int)
         asserts.equal(a.x, a._x)
 
+    @testing.subjects(
+        meta.TrackUnusedAttributes.__init_subclass__.__func__,
+        meta.TrackUnusedAttributes.unused_attributes,
+    )
+    def test_track_unused_attributes(self):
+        class Dog(meta.TrackUnusedAttributes):
+            def __init__(self):
+                self.health = 60
+
+            def bark(self):
+                print("GOOF! GOOF!")
+
+        class Hunter(meta.TrackUnusedAttributes):
+            def __init__(self):
+                self.dog = Dog()
+                self.health = 100
+                self.rifle = Rifle()
+
+        class Rifle(meta.TrackUnusedAttributes):
+            def __init__(self):
+                self.ammo = 30
+
+        hunter = Hunter()
+
+        expected = ["dog", "dog.bark", "dog.health", "health", "rifle", "rifle.ammo"]
+        obtained = [name for name, *_, in hunter.unused_attributes()]
+
+        asserts.equal(expected, obtained)
+
+        hunter.dog.bark
+        expected = ["dog.health", "health", "rifle", "rifle.ammo"]
+        obtained = [name for name, *_, in hunter.unused_attributes()]
+
+        asserts.equal(expected, obtained)
+
     @testing.subjects(meta.typehint_handlers)
     def test_typehint_handlers(self):
         handler = meta.typehint_handlers(

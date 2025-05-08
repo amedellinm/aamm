@@ -222,3 +222,37 @@ class ReadOnlyProperty:
         if hasattr(obj, self.private_name):
             raise AttributeError(f"property '{self.display_name}' is read-only")
         setattr(obj, self.private_name, value)
+
+
+class TrackUnusedAttributes:
+    """Add utils to track unused attributes."""
+
+    def __init_subclass__(cls):
+        """Decorate class with the tracking functionality."""
+
+        @wraps(__init__ := cls.__init__)
+        def init(self, *args, **kwargs):
+            self.used_attributes = set()
+            return __init__(self, *args, **kwargs)
+
+        @wraps(__getattribute__ := cls.__getattribute__)
+        def getattribute(self, name: str):
+            __getattribute__(self, "used_attributes").add(name)
+            return __getattribute__(self, name)
+
+        cls.__init__ = init
+        cls.__getattribute__ = getattribute
+
+    def unused_attributes(self, base_name: str = "") -> Iterator[tuple[str, Any]]:
+        """Yield the name and value of all unused names in `self`'s namespace."""
+        name = base_name and base_name + "."
+
+        for sub_name in dir(self):
+            value = super().__getattribute__(sub_name)
+            full_name = f"{name}{sub_name}"
+
+            if sub_name[:1].isalpha() and sub_name not in self.used_attributes:
+                yield full_name, value
+
+            if isinstance(value, TrackUnusedAttributes):
+                yield from value.unused_attributes(full_name)
