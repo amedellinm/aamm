@@ -10,7 +10,7 @@ from types import GenericAlias, ModuleType
 from typing import Any, Callable, Literal, TypeVar
 
 from aamm import file_system as fs
-from aamm import string
+from aamm import strings
 
 T = TypeVar("T")
 

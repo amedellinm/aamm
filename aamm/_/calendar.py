@@ -7,7 +7,7 @@ from typing import Literal
 
 import aamm.logging.formats as fmts
 from aamm.meta import ReadOnlyProperty
-from aamm.string import create_matcher
+from aamm.strings import create_matcher
 
 try:
     from typing import Self
