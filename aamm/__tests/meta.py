@@ -83,18 +83,18 @@ class TestMeta(testing.TestSuite):
         asserts.equal(meta.mangle(a, "name"), "_A__name")
         asserts.equal(meta.mangle(b, "name"), "_B__name")
 
-    @testing.subjects(meta.module_identifier)
+    @testing.subjects(meta.module_name)
     def test_module_identifier(self):
         path = fs.join("a", "b", "c.py")
         module = "a.b.c"
-        asserts.equal(module, meta.module_identifier(path))
+        asserts.equal(module, meta.module_name(path))
 
         path = fs.join("a", "b", "__init__.py")
         module = "a.b"
         asserts.equal(module, meta.module_name(path))
 
-    @testing.subjects(meta.public_members)
-    def test_public_members(self):
+    @testing.subjects(meta.members)
+    def test_members(self):
         class A:
             class_variable = 1
 
@@ -115,34 +115,16 @@ class TestMeta(testing.TestSuite):
             def method(self):
                 pass
 
-        obtained_names, obtained_objects, obtained_types = zip(*meta.public_members(B))
+        expected = {
+            "__hash__": A,
+            "__init__": B,
+            "class_method": A,
+            "class_variable": A,
+            "method": B,
+        }
 
-        expected_names = [
-            "TestMeta.test_public_members.<locals>.A.__hash__",
-            "TestMeta.test_public_members.<locals>.B.__init__",
-            "TestMeta.test_public_members.<locals>.A.class_method.__func__",
-            "TestMeta.test_public_members.<locals>.A.class_variable",
-            "TestMeta.test_public_members.<locals>.B.method",
-        ]
-
-        for expected, obtained in zip(expected_names, obtained_names):
-            asserts.equal(expected, obtained)
-
-        expected_objects = [
-            A.__hash__,
-            B.__init__,
-            A.class_method.__func__,
-            A.class_variable,
-            B.method,
-        ]
-
-        for expected, obtained in zip(expected_objects, obtained_objects):
-            asserts.equal(expected, obtained)
-
-        expected_types = [A, B, A, A, B]
-
-        for expected, obtained in zip(expected_types, obtained_types):
-            asserts.equal(expected, obtained)
+        obtained = {name: T for name, _, T in meta.members(B) if name in expected}
+        asserts.equal(expected, obtained)
 
     @testing.subjects(
         meta.ReadOnlyProperty,

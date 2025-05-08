@@ -6,7 +6,7 @@ from aamm._.meta import (
     import_path,
     lazy_property,
     mangle,
-    module_identifier,
-    public_members,
+    members,
+    module_name,
     typehint_handlers,
 )
