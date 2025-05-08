@@ -59,8 +59,12 @@ def exists(path: str) -> bool:
 
 def extension(path: str) -> str:
     """Return the extension of `path`."""
+    if is_directory(path):
+        return ""
+
     path = leaf(path)
     i = path.rfind(".")
+
     return path[i + 1 :] if i > 0 else ""
 
 
@@ -89,7 +93,7 @@ def glob(
         pattern,
         root_dir=root,
         recursive=recursive,
-        # include_hidden=include_hidden,
+        include_hidden=include_hidden,
     )
 
     if not with_root:
@@ -101,9 +105,7 @@ def glob(
 def has_extension(path: str, extension: str = None) -> bool:
     """Check `path` has extension `extension`."""
     obtained = _extension(path)
-    return (
-        bool(obtained) if extension is None else extension.removeprefix(".") == obtained
-    )
+    return bool(obtained) if extension is None else extension == obtained
 
 
 def head(path: str, n: int = 1) -> str:
