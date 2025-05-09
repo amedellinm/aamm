@@ -1,3 +1,6 @@
+from types import UnionType
+from typing import _GenericAlias
+
 from aamm import file_system as fs
 from aamm import metadata
 from aamm.iterable import group_by
@@ -17,7 +20,9 @@ def main():
     header_file_groups: dict[str, tuple[metadata.SymbolInfo]] = group_by(
         (fs.relative(si.header_file, metadata.home), si)
         for si in metadata.api_symbols().values()
-        if si.source_file and not si.has_docstring
+        if si.source_file
+        and not si.has_docstring
+        and not isinstance(si.value, (UnionType, _GenericAlias))
     )
 
     if not header_file_groups:
