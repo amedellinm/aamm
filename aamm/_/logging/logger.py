@@ -127,7 +127,7 @@ class Logger:
 
         return self
 
-    def undo(self, actions: int = 1, ignore_empty: bool = False) -> Self:
+    def undo(self, actions: int = 1, ignore_empty: bool = True) -> Self:
         """Undo the last n actions. Only works if the actions were not flushed."""
         with self.__lock:
             if self.__write_history or not ignore_empty:
