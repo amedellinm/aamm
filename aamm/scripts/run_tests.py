@@ -24,6 +24,7 @@ def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
 
     for path in metadata.test_files:
         module = meta.module_name(fs.relative(path, metadata.home))
+
         try:
             # Importing a file containing subclasses of `testing.TestSuit` loads
             # them to `testing.TestSuit.registry`.
@@ -79,14 +80,11 @@ def main(test_condition: Callable[[Test], bool] = lambda *_: True) -> int:
                 # Log error info.
                 logger.write(indent(error_message, 3))
                 logger.write(msg)
-
                 logger.separate(1, flush=False)
 
-            logger.undo(ignore_empty=True)
-            logger.separate(1, flush=False, forced=True)
+            logger.undo().separate(1, flush=False, forced=True)
 
-    logger.undo(ignore_empty=True)
-    logger.separate(forced=True)
+    logger.undo().separate(forced=True)
 
     # Log any discovery errors. These errors occurred not during actual test execution
     # but while discovering and collecting them. This means tests didn't fail because
