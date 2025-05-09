@@ -123,6 +123,7 @@ class TestTestSuite(testing.TestSuite):
             def test_3(self):
                 pass
 
+        asserts.equal(3, FakeTestSuite.count_tests())
         asserts.contain(testing.TestSuite.registry, FakeTestSuite)
         testing.TestSuite.registry.remove(FakeTestSuite)
 
