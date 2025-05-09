@@ -6,6 +6,7 @@ from aamm._.metadata import (
     name,
     root,
     source_files,
+    test_file,
     test_files,
     version,
 )
