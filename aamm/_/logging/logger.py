@@ -184,7 +184,7 @@ class Logger:
                 self.sep_registry[self.stream] = True
                 n = self.__buffer.write(msg)
 
-                if self.FLUSH if flush is None else flush:
+                if flush:
                     self.stream.write(self.__buffer.getvalue())
                     self.__buffer.seek(0)
                     self.__buffer.truncate()
