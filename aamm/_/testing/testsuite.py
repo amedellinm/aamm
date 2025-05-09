@@ -49,11 +49,9 @@ class TestSuite:
 
     def after(self):
         """Run after each test in its respective test suite (Even if test failed)."""
-        pass
 
     def before(self):
         """Run before each test in its respective test suite."""
-        pass
 
     @classmethod
     def count_tests(cls) -> int:
@@ -63,7 +61,6 @@ class TestSuite:
     @classmethod
     def initialize(cls):
         """Run once before starting tests execution of its respective test suite."""
-        pass
 
     @classmethod
     def run(
