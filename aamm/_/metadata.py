@@ -173,10 +173,10 @@ def api_symbols():
                 module_name,
                 False,
                 has_docstring(value),
-                source_file(symbol),
+                sf := source_file(symbol),
             )
 
-            if not isinstance(value, type):
+            if sf is None or not isinstance(value, type):
                 continue
 
             for name, member, Type in meta.members(value):
