@@ -1,4 +1,4 @@
-import importlib.util
+import importlib
 import inspect
 import io
 import sys
@@ -23,16 +23,6 @@ def capture_stdout(stream: io.TextIOBase):
         yield stream
     finally:
         sys.stdout = stdout
-
-
-def import_path(path: str) -> ModuleType:
-    """Import a Python module (.py) from a path using its absolute version as name."""
-    name = module_name(path)
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 def lazy_property(method: Callable[[Any], T]) -> T:

@@ -48,15 +48,6 @@ class TestMeta(testing.TestSuite):
         dictionary["c"] = 3
         asserts.equal({"b", "c"}, dictionary.unused_keys())
 
-    @testing.subjects(meta.import_path)
-    def test_import_path(self):
-        """
-        `meta.import_path` is heavily used in the internals of the `aamm.testing`
-        subpackage. No test I could write here would be more rigorous than straight-up
-        using the machinery to run this very test.
-
-        """
-
     @testing.subjects(meta.lazy_property)
     def test_lazy_property(self):
         class A:
