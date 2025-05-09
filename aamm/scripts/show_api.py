@@ -18,8 +18,8 @@ def main():
 
     for header_file, symbols_info in sorted(header_file_groups.items()):
         logger.write(header_file)
-        for si in symbols_info:
-            if not si.is_child:
+        for si in sorted(symbols_info):
+            if not si.is_class_member:
                 logger.write(
                     "   ",
                     fmts.contents_table_row(si.name, fmts.qualname(si.value), 70),
