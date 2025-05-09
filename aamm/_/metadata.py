@@ -78,6 +78,11 @@ class SymbolInfo:
     has_docstring: bool | EllipsisType = ...
     source_file: str | None = None
 
+    def __lt__(self, other: "SymbolInfo") -> bool:
+        a = (self.header_file, self.name)
+        b = (other.header_file, other.name)
+        return a < b
+
 
 class FromImportSymbol:
     def __eq__(self, other: "FromImportSymbol") -> bool:
