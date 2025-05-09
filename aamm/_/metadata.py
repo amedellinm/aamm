@@ -74,6 +74,7 @@ class SymbolInfo:
     value: Any
     header_file: str
     module_name: str
+    is_class_member: bool = False
     has_docstring: bool | EllipsisType = ...
     source_file: str | None = None
 
@@ -165,6 +166,7 @@ def api_symbols():
                 value,
                 header_file,
                 module_name,
+                False,
                 has_docstring(value),
                 source_file(symbol),
             )
@@ -186,6 +188,7 @@ def api_symbols():
                     member,
                     header_file,
                     module_name,
+                    True,
                     has_docstring(member),
                     is_local_module(Type.__module__),
                 )
