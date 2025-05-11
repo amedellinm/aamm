@@ -3,7 +3,7 @@ import importlib
 import inspect
 import tomllib
 from dataclasses import dataclass
-from types import EllipsisType
+from types import EllipsisType, ModuleType
 from typing import Any
 
 from aamm import file_system as fs
@@ -165,6 +165,11 @@ def api_symbols():
 
         for symbol in from_import_symbols(header_file):
             value = getattr(module, symbol.alias)
+
+            if isinstance(value, ModuleType):
+                raise ValueError(
+                    f"unexpected module symbol '{value}' found in {header_file}"
+                )
 
             symbols[id(value)] = SymbolInfo(
                 symbol.alias,
