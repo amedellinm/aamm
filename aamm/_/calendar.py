@@ -64,7 +64,7 @@ def find_weekday(
     -----
     ValueError:
         * If `index == 0`.
-        * If `not (1 <= weekday <= 6)`.
+        * If `not (0 <= weekday <= 6)`.
 
     """
 
