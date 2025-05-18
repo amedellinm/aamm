@@ -116,7 +116,7 @@ class DateValue:
         """Create a new instance with `value` equal to `self.value + other`."""
         if isinstance(other, int):
             return type(self)(self.value + other)
-        raise TypeError(operand_error("+", self, other))
+        raise TypeError(fmts.operand_error("+", self, other))
 
     def __eq__(self, other: Self | Number) -> bool:
         """Test equality of type and value."""
@@ -219,7 +219,7 @@ class YearMonth(DateValue):
                 for i in range(*subscript.indices(max_index))
             )
 
-        raise TypeError(type_error(subscript, (int, slice)))
+        raise TypeError(fmts.type_error(subscript, (int, slice)))
 
     def __init__(self, year: int, month: int = None) -> None:
         """If `month is None`, set `self.value` to `year`."""
@@ -283,7 +283,7 @@ class YearWeek(DateValue):
                 for i in range(*subscript.indices(7))
             )
 
-        raise TypeError(type_error(subscript, (int, slice)))
+        raise TypeError(fmts.type_error(subscript, (int, slice)))
 
     def __init__(self, year: int, week: int = None):
         if week is None:
