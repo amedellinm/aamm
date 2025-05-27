@@ -72,6 +72,7 @@ class TestCalendar(testing.TestSuite):
         asserts.equal(calendar.find_weekday(d3, d3.weekday(), -2, True), d1)
 
         asserts.raise_exception(ValueError, calendar.find_weekday, d1, d1.weekday(), 0)
+        asserts.raise_exception(ValueError, calendar.find_weekday, d1, 7)
 
     @testing.subjects(calendar.first_isodate)
     def test_first_isodate(self):
