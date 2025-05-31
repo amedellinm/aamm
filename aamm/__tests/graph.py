@@ -3,7 +3,6 @@ from aamm.testing import asserts
 
 
 class TestGraph(testing.TestSuite):
-
     @classmethod
     def initialize(cls):
         cls.graph = {
