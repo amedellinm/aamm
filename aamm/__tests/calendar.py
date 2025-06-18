@@ -166,8 +166,8 @@ class TestYearMonth(testing.TestSuite):
         calendar.YearMonth.__init__,
         calendar.YearMonth.current.__func__,
         calendar.YearMonth.from_date.__func__,
-        calendar.YearMonth.from_integer.__func__,
         calendar.YearMonth.from_string.__func__,
+        calendar.YearMonth.init_from.__func__,
     )
     def test_construction(self):
         YearMonth = calendar.YearMonth
@@ -179,10 +179,10 @@ class TestYearMonth(testing.TestSuite):
         asserts.equal(YM, YearMonth.from_date(Date(2000, 1, 1)))
         asserts.equal(YM, YearMonth.from_date(Date(2000, 1, 2)))
 
-        asserts.equal(YM, YearMonth.from_integer(200001))
-        asserts.equal(YearMonth(0, 1), YearMonth.from_integer(1))
-        asserts.equal(YearMonth(400, 12), YearMonth.from_integer(40012))
-        asserts.raise_exception(ValueError, YearMonth.from_integer, -40012)
+        asserts.equal(YM, YearMonth.init_from(200001))
+        asserts.equal(YearMonth(0, 1), YearMonth.init_from(1))
+        asserts.equal(YearMonth(400, 12), YearMonth.init_from(40012))
+        asserts.raise_exception(ValueError, YearMonth.init_from, -40012)
 
         asserts.equal(YM, YearMonth.from_string("200001"))
         asserts.equal(YearMonth(400, 12), YearMonth.from_string("040012"))
@@ -343,10 +343,10 @@ class TestYearWeek(testing.TestSuite):
 
         YW = YearWeek(2000, 1)
 
-        asserts.equal(YW, YearWeek.from_integer(200001))
-        asserts.equal(YearWeek(1, 1), YearWeek.from_integer(101))
-        asserts.equal(YearWeek(400, 12), YearWeek.from_integer(40012))
-        asserts.raise_exception(ValueError, YearWeek.from_integer, -40012)
+        asserts.equal(YW, YearWeek.init_from(200001))
+        asserts.equal(YearWeek(1, 1), YearWeek.init_from(101))
+        asserts.equal(YearWeek(400, 12), YearWeek.init_from(40012))
+        asserts.raise_exception(ValueError, YearWeek.init_from, -40012)
 
         asserts.equal(YW, YearWeek.from_string("200001"))
         asserts.equal(YearWeek(400, 12), YearWeek.from_string("040012"))
