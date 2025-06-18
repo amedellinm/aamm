@@ -1,9 +1,11 @@
+from datetime import date as Date
+from datetime import datetime as DateTime
+from datetime import time as Time
+from datetime import timedelta as TimeDelta
+
 from aamm._.calendar import (
     DAY,
     WEEK,
-    Date,
-    DateTime,
-    TimeDelta,
     YearMonth,
     YearWeek,
     elapse,
