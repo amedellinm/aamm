@@ -193,9 +193,17 @@ class DateValue:
         return (self + i for i in _elapse(difference, delta))
 
     @classmethod
-    def from_integer(cls, integer: int) -> Self:
-        """Construct from a valid `int` object YYYYMM."""
-        return cls.from_string(f"{integer:>06}")
+    def init_from(cls, value: Self | Date | int | str) -> Self:
+        """Construct from alternative values."""
+        if isinstance(value, cls):
+            return value
+        elif isinstance(value, Date):
+            return cls.from_date(value)
+        elif isinstance(value, int):
+            return cls.init_from(f"{value:>06}")
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        raise fmts.type_error(value, (cls, Date, int, str))
 
 
 class YearMonth(DateValue):
