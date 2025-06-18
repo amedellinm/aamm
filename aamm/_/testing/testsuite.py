@@ -1,6 +1,5 @@
 import random
 import time
-import traceback
 from collections.abc import Callable, Hashable, Iterator
 from dataclasses import dataclass
 
@@ -102,19 +101,8 @@ class TestSuite:
                     test.test(self)
 
                 except Exception as exception:
-                    stack = traceback.extract_tb(exception.__traceback__)
-
-                    # Traverse the stack looking for the summary corresponding to the
-                    # test. This accounts for decorated tests.
-                    for summary in stack:
-                        if summary.name == test.test.__name__:
-                            break
-
-                    # Store failure data.
                     test.exception = exception
-
                 else:
-                    # If there was no exception, set the field to `None`.
                     test.exception = None
 
                 finally:
