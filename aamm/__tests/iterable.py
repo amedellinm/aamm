@@ -1,6 +1,7 @@
 from aamm import testing
 from aamm.iterable import (
     cap_iter,
+    flatten_dict,
     group_by,
     hinted_sort,
     skip_iter,
@@ -19,6 +20,13 @@ class TestIterable(testing.TestSuite):
 
         for i in range(20):
             asserts.equal(sum(1 for _ in cap_iter(generator(), i)), i)
+
+    @testing.subjects(flatten_dict)
+    def test_flatten_dict(self):
+        dictionary = {"a": 1, "b": {"c": 2, "d": {"e": 3}}, "f": {"g": 4}}
+        expected = {"a": 1, "b.c": 2, "b.d.e": 3, "f.g": 4}
+        obtained = flatten_dict(dictionary, sep=".")
+        asserts.equal(expected, obtained)
 
     @testing.subjects(group_by)
     def test_group_by(self):

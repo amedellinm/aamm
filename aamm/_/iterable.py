@@ -1,12 +1,30 @@
 import itertools
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Iterable, Iterator, Sequence
+from typing import Any
 
 
 def cap_iter(iterable: Iterable, n: int) -> Iterator:
     """Cap an iterable to `n` iterations."""
     for i, _ in zip(iterable, range(n)):
         yield i
+
+
+def flatten_dict(
+    dictionary: dict[str, Any], sep: str, parent_key: str = ""
+) -> dict[str, Any]:
+    """Flatten a `dict[str, Any]` with `sep`-joined keys."""
+    items = {}
+
+    for k, v in dictionary.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+
+        if isinstance(v, dict):
+            items.update(flatten_dict(v, sep, new_key))
+        else:
+            items[new_key] = v
+
+    return items
 
 
 def group_by(
@@ -69,7 +87,9 @@ def hinted_sort(
     default = len(hint)
 
     if key is None:
-        key = lambda x: x
+
+        def key(x):
+            return x
 
     def hinted_key(value):
         return (hint.get(value, default), key(value))
